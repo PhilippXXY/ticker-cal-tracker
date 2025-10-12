@@ -1,0 +1,24 @@
+@startuml sequence_diagram_create_watchlist
+title Create Watchlist - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: POST /api/watchlists\n{ name, include_earnings, include_dividends, ... }
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+APP -> APP: Validate payload
+
+== Check Watchlist Name Uniqueness ==
+APP -> DB: SELECT 1 FROM watchlist WHERE name = :name AND user_id = :user_id
+alt watchlist name already exists
+    APP --> User: 409 Conflict { code: NAME_TAKEN }
+else watchlist name is unique
+    == Create Watchlist ==
+    APP -> DB: INSERT INTO watchlist(id, user_id, name, url, ...)\nVALUES (gen_uuid(), :user_id, :name, gen_token(), ...)
+    DB --> APP: { watchlist_id, url }
+    APP --> User: 201 Created { watchlist_id, name, url }
+end
+@enduml

@@ -1,0 +1,22 @@
+@startuml sequence_diagram_rotate_watchlist_calendar_url
+title Rotate Watchlist Calendar URL - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: POST /api/watchlists/{watchlist_id}/rotate
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+
+== Check Watchlist Ownership ==
+APP -> DB: SELECT * FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
+alt watchlist not found
+  APP --> User: 404 Not Found
+else watchlist found
+  == Generate New URL ==
+  APP -> DB: UPDATE watchlist SET url = gen_token() WHERE id=:watchlist_id\nRETURNING url
+  APP --> User: 200 OK { url }
+end
+@enduml

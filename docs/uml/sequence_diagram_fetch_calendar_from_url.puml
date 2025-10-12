@@ -1,0 +1,20 @@
+@startuml sequence_diagram_fetch_calendar_from_url
+title Fetch Calendar from URL - Sequence Diagram
+
+participant "Calendar Client" as CAL
+participant "Application" as APP
+database "SQL Database" as DB
+
+CAL -> APP: GET /cal/{url}
+
+== Validate Watchlist ==
+APP -> DB: SELECT id FROM watchlist WHERE url=:url
+alt watchlist not found
+  APP --> CAL: 404 Not Found
+else watchlist found
+    == Generate Calendar Events ==
+    APP -> DB: SELECT s.*, se.* FROM follow f\nJOIN stock s ON s.id = f.stock_id\nJOIN stock_event se ON se.stock_id = s.id\nWHERE f.watchlist_id = :watchlist_id
+    APP --> APP: render VCALENDAR/VEVENTs from stock events
+    APP --> CAL: 200 OK text/calendar
+end
+@enduml

@@ -1,0 +1,25 @@
+@startuml sequence_diagram_login
+title User Login - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: POST /api/auth/login { email, password }
+
+== User Lookup ==
+APP -> DB: SELECT id, password FROM "user" WHERE email=:email
+alt user not found
+  APP --> User: 401 Unauthorized { code: INVALID_CREDENTIALS }
+else user found
+  == Password Verification ==
+  APP -> APP: verify(password, stored_password_hash)
+  alt password valid
+    == Generate Token ==
+    APP -> APP: token = signJWT({ user_id })
+    APP --> User: 200 OK { token }
+  else password invalid
+    APP --> User: 401 Unauthorized { code: INVALID_CREDENTIALS }
+  end
+end
+@enduml

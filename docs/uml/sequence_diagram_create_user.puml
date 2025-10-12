@@ -1,0 +1,43 @@
+@startuml sequence_diagram_create_user
+title Create User - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: POST /api/auth/signup\n{ email, password }
+
+== Validation & Preparation ==
+APP --> APP: validate payload (email format, password length)\npassword_hash = hash(password)
+
+== Email Uniqueness Check ==
+APP -> DB: SELECT 1 FROM "user" WHERE email =: email
+alt email already exists
+  DB --> APP: row exists
+  APP --> User: 409 Conflict { code: EMAIL_TAKEN }
+else not found
+  DB --> APP: none
+
+  == Atomic creation ==
+  APP -> DB: BEGIN;
+
+  APP -> DB: INSERT INTO "user"(id, email, ...)\nVALUES (gen_uuid(), :email, ...)
+  DB --> APP: { user_id }
+
+  APP -> DB: INSERT INTO user_preference(user_id, default_reminder, ...) VALUES (:user_id, 30, ...);
+
+  APP -> DB: INSERT INTO watchlist(id, user_id, url, ...)\nVALUES (gen_uuid(), :user_id, gen_token(), ...)
+  DB --> APP: { watchlist_id, url }
+
+  APP -> DB: COMMIT;
+
+  == Response ==
+  APP --> User: 201 Created { user_id, watchlist_id, url: "/cal/{url}" }
+end
+
+== Error handling ==
+opt any insert fails
+  APP -> DB: ROLLBACK;
+  APP --> User: 500 Server Error { code: SIGNUP_FAILED }
+end
+@enduml

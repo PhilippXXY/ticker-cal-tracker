@@ -1,0 +1,38 @@
+@startuml sequence_diagram_follow_stock
+title Follow Stock - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+participant "External Stocks API" as EXT
+
+User -> APP: POST /api/stocks/follow\n{ ticker: "AAPL", watchlist_id: "USA" }
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+APP -> APP: Validate payload
+
+== Check Stock Existence ==
+APP -> DB: SELECT * FROM stock WHERE ticker = :ticker
+
+alt stock not found in database
+    == Fetch Stock Data from External API ==
+    APP -> EXT: GET /stocks/:ticker (fetch stock details)
+    EXT --> APP: Stock information (name, ISIN, etc.)
+    APP -> DB: INSERT INTO stock (id, ticker, name, last_updated)
+    
+    APP -> EXT: GET /stocks/:ticker/events (fetch historical events)
+    EXT --> APP: Stock events (earnings, dividends, etc.)
+    APP -> DB: INSERT INTO stock_event (stock_id, type, event_date, payload_json, fetched_at, source)
+end
+
+== Create Follow Relationship ==
+APP -> DB: SELECT * FROM follow WHERE watchlist_id = :watchlist_id AND stock_id = :stock_id
+
+alt stock already followed in watchlist
+    APP --> User: 409 Conflict { code: STOCK_ALREADY_FOLLOWED }
+else create new follow relationship
+    APP -> DB: INSERT INTO follow (watchlist_id, stock_id, created_at)
+    APP --> User: 201 Created { message: "Successfully following stock" }
+end
+@enduml

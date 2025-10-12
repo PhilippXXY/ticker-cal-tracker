@@ -1,0 +1,23 @@
+@startuml sequence_diagram_watchlist_follows
+title Get Watchlist Follows - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: GET /api/watchlists/{watchlist_id}/follows
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+
+== Check Watchlist Ownership ==
+APP -> DB: SELECT id FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
+alt watchlist not found
+  APP --> User: 404 Not Found
+else watchlist found
+  == Fetch Followed Stocks ==
+  APP -> DB: SELECT s.id, s.ticker, s.name, f.created_at\nFROM follow f JOIN stock s ON s.id=f.stock_id\nWHERE f.watchlist_id=:watchlist_id
+  DB --> APP: followed_stocks[]
+  APP --> User: 200 OK { stocks: followed_stocks }
+end
+@enduml

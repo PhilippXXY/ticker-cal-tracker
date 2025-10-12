@@ -1,0 +1,29 @@
+@startuml sequence_diagram_rename_watchlist
+title Rename Watchlist - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: PATCH /api/watchlists/{watchlist_id} { name: "Earnings Only" }
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+APP -> APP: Validate payload
+
+== Check Watchlist Ownership ==
+APP -> DB: SELECT id FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
+alt watchlist not found
+  APP --> User: 404 Not Found
+else watchlist found
+  == Check Name Uniqueness ==
+  APP -> DB: SELECT 1 FROM watchlist WHERE user_id=:user_id AND name=:name AND id<>:watchlist_id
+  alt name already taken
+    APP --> User: 409 Conflict { code: NAME_TAKEN }
+  else name available
+    == Update Watchlist Name ==
+    APP -> DB: UPDATE watchlist SET name=:name WHERE id=:watchlist_id\nRETURNING *
+    APP --> User: 200 OK { watchlist }
+  end
+end
+@enduml

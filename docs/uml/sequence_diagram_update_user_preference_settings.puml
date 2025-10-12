@@ -1,0 +1,25 @@
+@startuml sequence_diagram_update_user_preference_settings
+title Update User Preference Settings - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: PATCH /api/user/preferences\n{ default_reminder: 30, default_detail_level: "standard" }
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+APP -> APP: Validate payload
+
+== Check Existing Preferences ==
+APP -> DB: SELECT * FROM user_preference WHERE user_id = :user_id
+alt preferences exist
+    == Update Preferences ==
+    APP -> DB: UPDATE user_preference SET default_reminder=:default_reminder,\ndefault_detail_level=:default_detail_level, updated_at=now()\nWHERE user_id=:user_id
+    APP --> User: 200 OK { preferences }
+else preferences do not exist
+    == Create Preferences ==
+    APP -> DB: INSERT INTO user_preference(user_id, default_reminder, default_detail_level, created_at, updated_at)\nVALUES (:user_id, :default_reminder, :default_detail_level, now(), now())
+    APP --> User: 201 Created { preferences }
+end
+@enduml

@@ -1,0 +1,29 @@
+@startuml sequence_diagram_fetch_stock_names
+title Fetch Stock Names - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+participant "External Stocks API" as EXT
+
+User -> APP: GET /api/stocks/search?query=AAPL
+
+== Local Database Search ==
+APP -> DB: SELECT * FROM stock\nWHERE ticker ILIKE :query OR name ILIKE :query OR id ILIKE :query
+DB --> APP: local_items[]
+
+== External API Integration ==
+alt size(local_items) < limit (e.g. 10)
+    == Fetch Additional Results ==
+    APP -> EXT: GET /api/stock/search?query=:query
+    alt external API success
+        EXT --> APP: ext_items[]
+        APP -> DB: UPSERT stock FROM ext_items[]
+        APP --> User: 200 OK { items: local_items + ext_items }
+    else external API error/timeout
+        APP --> User: 200 OK { items: local_items, partial: true }
+    end
+else sufficient local results
+    APP --> User: 200 OK { items: local_items }
+end
+@enduml

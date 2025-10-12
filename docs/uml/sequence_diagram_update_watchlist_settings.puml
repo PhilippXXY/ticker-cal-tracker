@@ -1,0 +1,24 @@
+@startuml sequence_diagram_update_watchlist_settings
+title Update Watchlist Settings - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: PATCH /api/watchlists/{watchlist_id}\n{ include_earnings: true, include_dividends: false, detail_level: "standard" }
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+APP -> APP: Validate payload
+
+== Check Watchlist Ownership ==
+APP -> DB: SELECT * FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
+
+alt watchlist not found
+  APP --> User: 404 Not Found
+else watchlist found
+  == Update Watchlist Settings ==
+  APP -> DB: UPDATE watchlist SET include_earnings=:include_earnings,\ninclude_dividends=:include_dividends, detail_level=:detail_level\nWHERE id=:watchlist_id
+  APP --> User: 200 OK { watchlist }
+end
+@enduml

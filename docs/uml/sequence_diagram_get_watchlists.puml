@@ -1,0 +1,17 @@
+@startuml sequence_diagram_get_watchlists
+title Get Watchlists - Sequence Diagram
+
+actor User
+participant "Application" as APP
+database "SQL Database" as DB
+
+User -> APP: GET /api/watchlists
+
+== Authentication & Validation ==
+APP -> APP: Validate user authentication and permission
+
+== Fetch User Watchlists ==
+APP -> DB: SELECT * FROM watchlist WHERE user_id = :user_id
+DB --> APP: watchlists[]
+APP --> User: 200 OK { watchlists }
+@enduml
