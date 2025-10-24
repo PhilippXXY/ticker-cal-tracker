@@ -22,6 +22,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(watchlists_bp, url_prefix='/api/watchlists')
     app.register_blueprint(stocks_bp, url_prefix='/api/stocks')
+    app.register_blueprint(user_bp, url_prefix='/api/user')
     app.register_blueprint(calendar_bp, url_prefix='/api/cal')
     
     # Set up logging
@@ -32,5 +33,5 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)
     
