@@ -1,6 +1,7 @@
 import logging
 
 from flask import Flask
+from flask_smorest import Api
 
 from src.api.routes.auth_rest import auth_bp
 from src.api.routes.calendar_rest import calendar_bp
@@ -17,13 +18,26 @@ def create_app():
     """
     # Initialize Flask
     app = Flask(__name__)
+    
+    # Configuration for Flask-Smorest
+    app.config.update({
+        'API_TITLE': 'Ticker Calendar Tracker API',
+        'API_VERSION': '0.0.0',
+        'OPENAPI_VERSION': '3.0.3',
+        'OPENAPI_URL_PREFIX': '/',
+        'OPENAPI_SWAGGER_UI_PATH': '/docs',
+        'OPENAPI_SWAGGER_UI_URL': 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/',
+    })
 
-    # Register the API routes as Flask blueprints
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(watchlists_bp, url_prefix='/api/watchlists')
-    app.register_blueprint(stocks_bp, url_prefix='/api/stocks')
-    app.register_blueprint(user_bp, url_prefix='/api/user')
-    app.register_blueprint(calendar_bp, url_prefix='/api/cal')
+    # Initialize Flask-Smorest API
+    api = Api(app)
+
+    # Register the API blueprints
+    api.register_blueprint(auth_bp, url_prefix='/api/auth')
+    api.register_blueprint(watchlists_bp, url_prefix='/api/watchlists')
+    api.register_blueprint(stocks_bp, url_prefix='/api/stocks')
+    api.register_blueprint(user_bp, url_prefix='/api/user')
+    api.register_blueprint(calendar_bp, url_prefix='/api/cal')
     
     # Set up logging
     if not app.debug:
