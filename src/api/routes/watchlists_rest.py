@@ -7,7 +7,7 @@ from flask_smorest import Blueprint
 from datetime import datetime, timezone
 
 # Import the schemas as they define the return types
-from api.schemas.watchlists_schemas import (
+from src.api.schemas.watchlists_schemas import (
     WatchlistSchema,
     WatchlistCreateSchema,
     WatchlistUpdateSchema
@@ -23,7 +23,7 @@ class WatchlistCollection(MethodView):
     Endpoint for watchlist collection operations.
     '''
 
-    @watchlists_bp.response(status_code=200, schema=WatchlistSchema)
+    @watchlists_bp.response(status_code=200, schema=WatchlistSchema(many=True))
     def get(self):
         '''
         List all watchlists.
@@ -57,8 +57,8 @@ class WatchlistCollection(MethodView):
             'id': 1,
             'name': new_data['name'],
             'description': new_data.get('description'),
-            'created_at': datetime.now,
-            'updated_at': datetime.now
+            'created_at': datetime.now(),
+            'updated_at': datetime.now()
         }
 
 
@@ -96,7 +96,7 @@ class WatchlistDetailResource(MethodView):
             'name': update_data.get('name', 'Updated Watchlist'),
             'description': update_data.get('description'),
             'created_at': datetime(2025, 10, 24, 9, 0, 0, tzinfo=timezone.utc),
-            'updated_at': datetime.now
+            'updated_at': datetime.now()
         }
 
     @watchlists_bp.response(status_code=204)
