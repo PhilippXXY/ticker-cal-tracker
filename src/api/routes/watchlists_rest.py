@@ -102,6 +102,6 @@ class WatchlistDetailResource(MethodView):
     @watchlists_bp.response(status_code=204)
     @watchlists_bp.alt_response(status_code=404, description='Watchlist not found')
     def delete(self, watchlist_id):
-        """Delete a watchlist."""
+        '''Delete a watchlist.'''
         # TODO: Implement actual logic
         return
