@@ -57,8 +57,8 @@ class WatchlistCollection(MethodView):
             'id': 1,
             'name': new_data['name'],
             'description': new_data.get('description'),
-            'created_at': datetime.now(),
-            'updated_at': datetime.now()
+            'created_at': datetime.now(timezone.utc),
+            'updated_at': datetime.now(timezone.utc)
         }
 
 
@@ -96,7 +96,7 @@ class WatchlistDetailResource(MethodView):
             'name': update_data.get('name', 'Updated Watchlist'),
             'description': update_data.get('description'),
             'created_at': datetime(2025, 10, 24, 9, 0, 0, tzinfo=timezone.utc),
-            'updated_at': datetime.now()
+            'updated_at': datetime.now(timezone.utc)
         }
 
     @watchlists_bp.response(status_code=204)
