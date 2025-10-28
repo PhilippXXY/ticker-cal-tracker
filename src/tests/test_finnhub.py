@@ -250,11 +250,19 @@ class TestFinnhub(unittest.TestCase):
     @patch('external.finnhub.finnhub.Client')
     def test_initialization_missing_api_key(self, mock_client_class):
         """Test initialization failure when API key is missing."""
-        with patch.dict(os.environ, {}, clear=True):
-            with self.assertRaises(ValueError) as context:
-                Finnhub()
-            
-            self.assertIn("API key 'API_KEY_FINNHUB' not found in environment variables", str(context.exception))
+        # Stop the setUp patch temporarily to test missing API key scenario
+        self.api_key_patch.stop()
+        try:
+            with patch.dict(os.environ, {}, clear=True):
+                # Mock load_dotenv to prevent loading from .env file
+                with patch('external.external_base.load_dotenv'):
+                    with self.assertRaises(ValueError) as context:
+                        Finnhub()
+                    
+                    self.assertIn("API key 'API_KEY_FINNHUB' not found in environment variables", str(context.exception))
+        finally:
+            # Restart the patch for cleanup
+            self.api_key_patch.start()
     
     # ===== Integration-style Tests =====
     
