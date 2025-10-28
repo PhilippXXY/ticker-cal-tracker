@@ -45,8 +45,7 @@ class Finnhub(ExternalApiBaseDefinition):
                 
                 if data and 'name' in data:
                     # Build Stock object from API response
-                    return Stock(
-                        isin=data.get('isin', ''),  
+                    return Stock(  
                         name=data.get('name', ''),
                         symbol=symbol,
                         last_updated=datetime.now(timezone.utc)
@@ -93,7 +92,6 @@ class Finnhub(ExternalApiBaseDefinition):
                         
                         if profile_data and 'name' in profile_data:
                             return Stock(
-                                isin=profile_data.get('isin', ''),
                                 name=profile_data.get('name', ''),
                                 symbol=symbol,
                                 last_updated=datetime.now(timezone.utc)
@@ -109,39 +107,3 @@ class Finnhub(ExternalApiBaseDefinition):
                 raise ValueError(f"Error fetching stock data for name '{name}': {str(e)}")
         else:
             raise ValueError(f"Invalid name provided: {name}")
-    
-    
-    def getStockInfoFromIsin(self, *, isin: str) -> Stock:
-        '''
-        Retrieve stock information by ISIN.
-        
-        Args:
-            isin: International Securities Identification Number
-            
-        Returns:
-            Stock object with company information
-            
-        Raises:
-            ValueError: If ISIN is invalid or no data found
-        '''    
-        if isin and len(isin.strip()) > 0:
-            try:
-                # Query company profile using ISIN
-                data = self.finnhub_client.company_profile2(isin=isin)
-                logger.debug(f"Data for ISIN '{isin}': {data}")
-                
-                if data and 'name' in data:
-                    # Build Stock object from API response
-                    return Stock(
-                        isin=data.get('isin', isin), # Use provided ISIN if not in response
-                        name=data.get('name', ''),
-                        symbol=data.get('ticker', ''),
-                        last_updated=datetime.now(timezone.utc)
-                    )
-                else:
-                    raise ValueError(f"No stock data found for ISIN: {isin}")
-                    
-            except Exception as e:
-                raise ValueError(f"Error fetching stock data for ISIN '{isin}': {str(e)}")
-        else:
-            raise ValueError(f"Invalid ISIN provided: {isin}")

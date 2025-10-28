@@ -53,17 +53,3 @@ class ExternalApiBaseDefinition(ABC):
         :see: models.stock_model.Stock
         '''
         pass
-
-    @abstractmethod
-    def getStockInfoFromIsin(self, *, isin: str) -> "Stock":
-        '''Retrieve stock information by ISIN code.
-        
-        Args:
-            isin: Financial Instrument Global Identifier
-            
-        Returns:
-            Stock: Stock information object
-            
-        :see: models.stock_model.Stock
-        '''
-        pass
