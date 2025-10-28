@@ -49,7 +49,6 @@ class TestFinnhub(unittest.TestCase):
         # Mock API response
         mock_response = {
             'name': 'Apple Inc.',
-            'isin': 'US0378331005',
             'ticker': 'AAPL'
         }
         self.mock_client.company_profile2.return_value = mock_response
@@ -61,14 +60,13 @@ class TestFinnhub(unittest.TestCase):
         self.assertIsInstance(result, Stock)
         self.assertEqual(result.symbol, 'AAPL')
         self.assertEqual(result.name, 'Apple Inc.')
-        self.assertEqual(result.isin, 'US0378331005')
         self.assertIsInstance(result.last_updated, datetime)
         
         # Verify API call
         self.mock_client.company_profile2.assert_called_once_with(symbol='AAPL')
     
     def test_getStockInfoFromSymbol_success_minimal_data(self):
-        """Test successful symbol lookup with minimal data (no ISIN)."""
+        """Test successful symbol lookup with minimal data."""
         # Mock API response with minimal data
         mock_response = {
             'name': 'Test Company Inc.',
@@ -83,7 +81,6 @@ class TestFinnhub(unittest.TestCase):
         self.assertIsInstance(result, Stock)
         self.assertEqual(result.symbol, 'TEST')
         self.assertEqual(result.name, 'Test Company Inc.')
-        self.assertEqual(result.isin, '')  # Should default to empty string
         self.assertIsInstance(result.last_updated, datetime)
     
     def test_getStockInfoFromSymbol_no_data_found(self):
@@ -141,7 +138,6 @@ class TestFinnhub(unittest.TestCase):
         # Mock profile response
         mock_profile_response = {
             'name': 'Microsoft Corporation',
-            'isin': 'US5949181045',
             'ticker': 'MSFT'
         }
         self.mock_client.company_profile2.return_value = mock_profile_response
@@ -153,7 +149,6 @@ class TestFinnhub(unittest.TestCase):
         self.assertIsInstance(result, Stock)
         self.assertEqual(result.symbol, 'MSFT')
         self.assertEqual(result.name, 'Microsoft Corporation')
-        self.assertEqual(result.isin, 'US5949181045')
         self.assertIsInstance(result.last_updated, datetime)
         
         # Verify API calls
@@ -241,94 +236,6 @@ class TestFinnhub(unittest.TestCase):
         
         self.assertIn("Invalid name provided:", str(context.exception))
     
-    # ===== Tests for getStockInfoFromIsin =====
-    
-    def test_getStockInfoFromIsin_success(self):
-        """Test successful ISIN lookup with complete data."""
-        # Mock API response
-        mock_response = {
-            'name': 'Tesla, Inc.',
-            'isin': 'US88160R1014',
-            'ticker': 'TSLA'
-        }
-        self.mock_client.company_profile2.return_value = mock_response
-        
-        # Execute test
-        result = self.finnhub_api.getStockInfoFromIsin(isin='US88160R1014')
-        
-        # Assertions
-        self.assertIsInstance(result, Stock)
-        self.assertEqual(result.isin, 'US88160R1014')
-        self.assertEqual(result.name, 'Tesla, Inc.')
-        self.assertEqual(result.symbol, 'TSLA')
-        self.assertIsInstance(result.last_updated, datetime)
-        
-        # Verify API call
-        self.mock_client.company_profile2.assert_called_once_with(isin='US88160R1014')
-    
-    def test_getStockInfoFromIsin_success_fallback_isin(self):
-        """Test ISIN lookup when response doesn't include ISIN (fallback to provided)."""
-        # Mock API response without ISIN
-        mock_response = {
-            'name': 'Test Company',
-            'ticker': 'TEST'
-            # Missing 'isin' key
-        }
-        self.mock_client.company_profile2.return_value = mock_response
-        
-        # Execute test
-        result = self.finnhub_api.getStockInfoFromIsin(isin='US1234567890')
-        
-        # Assertions
-        self.assertIsInstance(result, Stock)
-        self.assertEqual(result.isin, 'US1234567890')  # Should use provided ISIN
-        self.assertEqual(result.name, 'Test Company')
-        self.assertEqual(result.symbol, 'TEST')
-    
-    def test_getStockInfoFromIsin_no_data_found(self):
-        """Test ISIN lookup when no data is returned."""
-        # Mock empty API response
-        self.mock_client.company_profile2.return_value = {}
-        
-        # Execute test and expect ValueError
-        with self.assertRaises(ValueError) as context:
-            self.finnhub_api.getStockInfoFromIsin(isin='US0000000000')
-        
-        self.assertIn("No stock data found for ISIN: US0000000000", str(context.exception))
-    
-    def test_getStockInfoFromIsin_api_exception(self):
-        """Test ISIN lookup when API throws an exception."""
-        # Mock API exception
-        self.mock_client.company_profile2.side_effect = Exception("ISIN API Error")
-        
-        # Execute test and expect ValueError
-        with self.assertRaises(ValueError) as context:
-            self.finnhub_api.getStockInfoFromIsin(isin='US88160R1014')
-        
-        self.assertIn("Error fetching stock data for ISIN 'US88160R1014'", str(context.exception))
-        self.assertIn("ISIN API Error", str(context.exception))
-    
-    def test_getStockInfoFromIsin_empty_isin(self):
-        """Test ISIN lookup with empty ISIN."""
-        with self.assertRaises(ValueError) as context:
-            self.finnhub_api.getStockInfoFromIsin(isin='')
-        
-        self.assertIn("Invalid ISIN provided:", str(context.exception))
-    
-    def test_getStockInfoFromIsin_whitespace_only_isin(self):
-        """Test ISIN lookup with whitespace-only ISIN."""
-        with self.assertRaises(ValueError) as context:
-            self.finnhub_api.getStockInfoFromIsin(isin='   ')
-        
-        self.assertIn("Invalid ISIN provided:", str(context.exception))
-    
-    def test_getStockInfoFromIsin_none_isin(self):
-        """Test ISIN lookup with None ISIN."""
-        with self.assertRaises(ValueError) as context:
-            self.finnhub_api.getStockInfoFromIsin(isin=None)  # type: ignore
-        
-        self.assertIn("Invalid ISIN provided:", str(context.exception))
-    
     # ===== Tests for Initialization =====
     
     @patch('external.finnhub.finnhub.Client')
@@ -356,7 +263,6 @@ class TestFinnhub(unittest.TestCase):
         # Mock response for symbol lookup
         mock_response = {
             'name': 'Test Company',
-            'isin': 'US1234567890',
             'ticker': 'TEST'
         }
         self.mock_client.company_profile2.return_value = mock_response
@@ -364,10 +270,6 @@ class TestFinnhub(unittest.TestCase):
         # Test symbol lookup
         result_symbol = self.finnhub_api.getStockInfoFromSymbol(symbol='TEST')
         self.assertEqual(result_symbol.last_updated.tzinfo, timezone.utc)
-        
-        # Test ISIN lookup
-        result_isin = self.finnhub_api.getStockInfoFromIsin(isin='US1234567890')
-        self.assertEqual(result_isin.last_updated.tzinfo, timezone.utc)
         
         # Test name lookup (requires additional mock setup)
         mock_search_response = {'result': [{'symbol': 'TEST'}]}
