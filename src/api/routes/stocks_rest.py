@@ -25,12 +25,10 @@ class Stocks(MethodView):
         # TODO: Implement actual logic
         return [
             {
-            "isin": "US0378331005",
             "ticker": "AAPL",
             "name": "Apple Inc."
             },
             {
-            "isin": "US5949181045",
             "ticker": "MSFT",
             "name": "Microsoft Corporation"
             }

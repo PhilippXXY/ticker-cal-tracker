@@ -12,7 +12,6 @@ class EventType(str, Enum):
 @dataclass
 class StockEvent:
     id: int
-    stock_isin: str
     type: EventType
     date: datetime
     last_updated: datetime
