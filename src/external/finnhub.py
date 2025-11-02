@@ -12,7 +12,7 @@ class Finnhub(ExternalApiBaseDefinition):
     Finnhub API client for retrieving stock information.
     
     Implementation of financial data API using Finnhub's REST endpoints.
-    Supports lookup by symbol, company name, and ISIN.
+    Supports lookup by symbol and company name.
     
     API documentation: https://finnhub.io/docs/api/
     '''
