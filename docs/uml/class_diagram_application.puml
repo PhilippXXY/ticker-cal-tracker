@@ -9,7 +9,6 @@ class User {
 }
 
 class Stock {
-  +id: ISIN
   +ticker: string
   +name: string
   +last_updated: datetime
@@ -17,7 +16,7 @@ class Stock {
 
 class Follow {
   +watchlist_id: UUID
-  +stock_id: ISIN
+  +stock_ticker: string
   +created_at: datetime
 }
 
@@ -31,7 +30,7 @@ enum EventType {
 
 class StockEvent {
   +id: UUID
-  +stock_id: ISIN
+  +stock_ticker: string
   +type: EventType
   +event_date: date
   +payload_json: json

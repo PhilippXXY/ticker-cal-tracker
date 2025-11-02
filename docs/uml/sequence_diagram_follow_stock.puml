@@ -18,7 +18,7 @@ APP -> DB: SELECT * FROM stock WHERE ticker = :ticker
 alt stock not found in database
     == Fetch Stock Data from External API ==
     APP -> EXT: GET /stocks/:ticker (fetch stock details)
-    EXT --> APP: Stock information (name, ISIN, etc.)
+    EXT --> APP: Stock information (name, ticker, etc.)
     APP -> DB: INSERT INTO stock (id, ticker, name, last_updated)
     
     APP -> EXT: GET /stocks/:ticker/events (fetch historical events)

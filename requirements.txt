@@ -1,3 +1,5 @@
 Flask
 flask-smorest
 marshmallow
+python-dotenv
+finnhub-python
