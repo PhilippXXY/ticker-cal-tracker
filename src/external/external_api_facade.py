@@ -50,19 +50,27 @@ class ExternalApiFacade:
             raise TypeError(f"Name must be a string, got {type(name).__name__}")
         
         # Try Finnhub first (higher rate limit)
+        finnhub_error = None
         try:
             logger.debug(f"Attempting to fetch stock by name '{name}' using Finnhub")
             return self.finnhub.getStockInfoFromName(name=name)
         except ValueError as e:
-            logger.warning(f"Finnhub lookup failed for name '{name}': {str(e)}")
+            finnhub_error = str(e)
+            logger.warning(f"Finnhub lookup failed for name '{name}': {finnhub_error}")
             
         # Fallback to Alpha Vantage
+        alpha_vantage_error = None
         try:
             logger.debug(f"Falling back to Alpha Vantage for name '{name}'")
             return self.alpha_vantage.getStockInfoFromName(name=name)
         except ValueError as e:
-            logger.error(f"Alpha Vantage lookup also failed for name '{name}': {str(e)}")
-            raise ValueError(f"Failed to fetch stock data for name '{name}' from all sources")
+            alpha_vantage_error = str(e)
+            logger.error(f"Alpha Vantage lookup also failed for name '{name}': {alpha_vantage_error}")
+            error_msg = (
+                f"Failed to fetch stock data for name '{name}' from all sources. "
+                f"Finnhub: {finnhub_error}, Alpha Vantage: {alpha_vantage_error}"
+            )
+            raise ValueError(error_msg)
     
     def getStockInfoFromSymbol(self, *, symbol: str) -> Stock:
         '''

@@ -83,8 +83,12 @@ class AlphaVantage(ExternalApiBaseDefinition):
                 else:
                     raise ValueError(f"No stocks found for name: {name}")
                     
+            except requests.RequestException as e:
+                raise ValueError(f"Network error fetching stock data for name '{name}': {str(e)}") from e
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Error decoding JSON response for name '{name}': {str(e)}") from e
             except Exception as e:
-                raise ValueError(f"Error fetching stock data for name '{name}': {str(e)}")
+                raise ValueError(f"Unexpected error fetching stock data for name '{name}': {str(e)}") from e
         else:
             raise ValueError(f"Invalid name provided: {name}")
     
@@ -343,7 +347,7 @@ class AlphaVantage(ExternalApiBaseDefinition):
                                 )
                             except ValueError as e:
                                 # Only log if date_str is not "None" (expected for future unannounced dates)
-                                if date_str != "None":
+                                if date_str != "None" or date_str is None:
                                     logger.warning(f"Invalid date format for dividend {dividend_type[0]}: {date_str}, error: {e}")
                                 continue
         except requests.exceptions.RequestException as e:

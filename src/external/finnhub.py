@@ -42,13 +42,13 @@ class Finnhub(ExternalApiBaseDefinition):
             try:
                 # Call Finnhub company profile API
                 data = self.finnhub_client.company_profile2(symbol=symbol)
-                print(data)
+                logger.debug(f"Company profile data for symbol '{symbol}': {data}")
                 
                 if data and 'name' in data:
                     # Build Stock object from API response
                     return Stock(  
                         name=data.get('name', ''),
-                        symbol=symbol.upper(),
+                        symbol=data.get('ticker', symbol),
                         last_updated=datetime.now(timezone.utc)
                     )
                 else:

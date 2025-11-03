@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from enum import Enum
 from models.stock_model import Stock
 
