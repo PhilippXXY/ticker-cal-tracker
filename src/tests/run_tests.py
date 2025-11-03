@@ -52,9 +52,11 @@ def run_unit_tests(verbose=True):
         if verbose:
             cmd.append('-v')
         
-        result = subprocess.run(cmd, cwd='src')
+        result = subprocess.run(cmd, cwd='src', capture_output=True, text=True)
         if result.returncode != 0:
             print(f"\n✗ {test} failed!")
+            print("stdout:\n", result.stdout)
+            print("stderr:\n", result.stderr)
             return False
     
     print("\n" + "="*70)
@@ -110,9 +112,11 @@ def run_integration_tests(verbose=True):
         if verbose:
             cmd.append('-v')
         
-        result = subprocess.run(cmd, cwd='src')
+        result = subprocess.run(cmd, cwd='src', capture_output=True, text=True)
         if result.returncode != 0:
             print(f"\n⚠️  {test} had failures (may be due to rate limits)")
+            print("stdout:\n", result.stdout)
+            print("stderr:\n", result.stderr)
             success = False
     
     if success:

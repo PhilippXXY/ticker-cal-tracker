@@ -416,20 +416,31 @@ class TestGetEarningsAnnouncementsFromStock(unittest.TestCase):
     @patch('external.alpha_vantage.requests.Session')
     def test_get_earnings_success(self, mock_session):
         '''Test successful earnings fetch.'''
-        csv_data = "symbol,reportDate,fiscalDateEnding\nAAPL,2025-11-05,2025-09-30\nAAPL,2026-02-05,2025-12-31"
-        
+        from datetime import timedelta
+
+        now = datetime.now(timezone.utc)
+        report_date_1 = (now + timedelta(days=30)).strftime('%Y-%m-%d')
+        fiscal_date_1 = (now + timedelta(days=10)).strftime('%Y-%m-%d')
+        report_date_2 = (now + timedelta(days=120)).strftime('%Y-%m-%d')
+        fiscal_date_2 = (now + timedelta(days=90)).strftime('%Y-%m-%d')
+        csv_data = (
+            f"symbol,reportDate,fiscalDateEnding\n"
+            f"AAPL,{report_date_1},{fiscal_date_1}\n"
+            f"AAPL,{report_date_2},{fiscal_date_2}"
+        )
+
         mock_response = Mock()
         mock_response.content = csv_data.encode('utf-8')
         mock_response.raise_for_status = Mock()
-        
+
         mock_session_instance = Mock()
         mock_session_instance.get.return_value = mock_response
         mock_session_instance.__enter__ = Mock(return_value=mock_session_instance)
         mock_session_instance.__exit__ = Mock(return_value=None)
         mock_session.return_value = mock_session_instance
-        
+
         result = self.av._getEarningsAnnouncementsFromStock(stock=self.test_stock)
-        
+
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0].type, EventType.EARNINGS_ANNOUNCEMENT)
         self.assertEqual(result[0].stock, self.test_stock)

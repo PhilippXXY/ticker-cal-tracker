@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 from dotenv import load_dotenv
+import requests
 
 from external.alpha_vantage import AlphaVantage
 from models.stock_model import Stock
@@ -327,7 +328,6 @@ class TestAlphaVantageAPIResponseFormats(unittest.TestCase):
     
     def test_symbol_search_response_format(self):
         '''Verify SYMBOL_SEARCH API returns expected format.'''
-        import requests
         
         url = f'https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=Apple&apikey={self.av.api_key}'
         response = requests.get(url)
@@ -350,7 +350,6 @@ class TestAlphaVantageAPIResponseFormats(unittest.TestCase):
     
     def test_earnings_calendar_response_format(self):
         '''Verify EARNINGS_CALENDAR API returns CSV format.'''
-        import requests
         
         url = f'https://www.alphavantage.co/query?function=EARNINGS_CALENDAR&symbol=AAPL&horizon=3month&apikey={self.av.api_key}'
         response = requests.get(url)
@@ -373,7 +372,6 @@ class TestAlphaVantageAPIResponseFormats(unittest.TestCase):
     
     def test_dividends_response_format(self):
         '''Verify DIVIDENDS API returns expected JSON format.'''
-        import requests
         
         url = f'https://www.alphavantage.co/query?function=DIVIDENDS&symbol=AAPL&apikey={self.av.api_key}'
         response = requests.get(url)
@@ -403,7 +401,6 @@ class TestAlphaVantageAPIResponseFormats(unittest.TestCase):
     
     def test_splits_response_format(self):
         '''Verify SPLITS API returns expected JSON format.'''
-        import requests
         
         url = f'https://www.alphavantage.co/query?function=SPLITS&symbol=AAPL&apikey={self.av.api_key}'
         response = requests.get(url)
