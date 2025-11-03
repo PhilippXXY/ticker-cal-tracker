@@ -9,10 +9,21 @@ from models.stock_event_model import StockEvent, EventType
 logger = logging.getLogger(__name__)
 
 class AlphaVantage(ExternalApiBaseDefinition):
+    '''
+    Alpha Vantage API client for retrieving stock information and event data.
+    
+    Implementation of financial data API using Alpha Vantage's REST endpoints.
+    Supports stock lookup, earnings calendars, dividend information, and stock splits.
+    
+    API documentation: https://www.alphavantage.co/documentation/
+    '''
     
     def __init__(self):
         '''
         Initialize Alpha Vantage client with API key from environment.
+        
+        Raises:
+            ValueError: If API key is not found in environment variables.
         '''
         super().__init__(api_key_name='API_KEY_ALPHA_VANTAGE')
         
@@ -20,6 +31,25 @@ class AlphaVantage(ExternalApiBaseDefinition):
         self.source = self.__class__.__name__
        
     def getStockInfoFromName(self, *, name: str) -> Stock:
+        '''
+        Retrieve stock information by company name.
+        
+        Searches for companies matching the name and returns details
+        for the best match found.
+        
+        Args:
+            name: Company name to search for (e.g., 'Apple Inc')
+            
+        Returns:
+            Stock object with company information
+            
+        Raises:
+            ValueError: If name is invalid or no matches found
+            TypeError: If name is not a string
+        '''
+        # Type checking
+        if not isinstance(name, str):
+            raise TypeError(f"Name must be a string, got {type(name).__name__}")
        
         if name and len(name.strip()) > 0:
             try:
@@ -63,7 +93,12 @@ class AlphaVantage(ExternalApiBaseDefinition):
             
         Raises:
             ValueError: If symbol is invalid or no data found
+            TypeError: If symbol is not a string
         '''
+        # Type checking
+        if not isinstance(symbol, str):
+            raise TypeError(f"Symbol must be a string, got {type(symbol).__name__}")
+            
         if symbol and len(symbol) > 0:
             try:
                 function = "SYMBOL_SEARCH"
@@ -107,6 +142,35 @@ class AlphaVantage(ExternalApiBaseDefinition):
         
               
     def getStockEventDatesFromStock(self, *, stock: Stock, event_types: list[EventType]) -> list[StockEvent]:
+        '''
+        Retrieve stock events for a given stock and event types.
+        
+        Fetches earnings announcements, dividend events, and stock splits
+        based on the requested event types.
+        
+        Args:
+            stock: Stock object to get events for
+            event_types: List of EventType enums to fetch (e.g., EARNINGS_ANNOUNCEMENT, DIVIDEND_EX)
+            
+        Returns:
+            List of StockEvent objects matching the requested event types
+            
+        Raises:
+            TypeError: If stock is not a Stock object or event_types is not a list
+            ValueError: If event_types is empty or contains invalid types
+        '''
+        # Type checking
+        if not isinstance(stock, Stock):
+            raise TypeError(f"Stock must be a Stock object, got {type(stock).__name__}")
+        if not isinstance(event_types, list):
+            raise TypeError(f"event_types must be a list, got {type(event_types).__name__}")
+        if not event_types:
+            raise ValueError("event_types cannot be empty")
+        
+        # Validate all items in event_types are EventType enums
+        for event_type in event_types:
+            if not isinstance(event_type, EventType):
+                raise TypeError(f"All event_types must be EventType enums, got {type(event_type).__name__}")
         
         result_items = []
         
@@ -130,105 +194,193 @@ class AlphaVantage(ExternalApiBaseDefinition):
         return result_items
         
     def _getEarningsAnnouncementsFromStock(self, *, stock: Stock) -> list[StockEvent]:
+        '''
+        Fetch earnings announcement events for a stock.
+        
+        Uses Alpha Vantage's EARNINGS_CALENDAR API to retrieve upcoming
+        and recent earnings report dates for the next 12 months.
+        
+        Args:
+            stock: Stock object to get earnings for
+            
+        Returns:
+            List of StockEvent objects with EARNINGS_ANNOUNCEMENT type
+            
+        Raises:
+            TypeError: If stock is not a Stock object
+            ValueError: If API request fails or returns invalid data
+        '''
+        # Type checking
+        if not isinstance(stock, Stock):
+            raise TypeError(f"Stock must be a Stock object, got {type(stock).__name__}")
         
         function = "EARNINGS_CALENDAR"
-        symbol = str(Stock.symbol).upper()
+        symbol = stock.symbol.upper()
         horizon = "12month"
         result_items = []
         
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&horizon={horizon}&apikey={self.api_key}'
-        
-        
-        with requests.Session() as s:
-            download = s.get(url)
-            decoded_content = download.content.decode('utf-8')
-            data = csv.DictReader(decoded_content.splitlines(), delimiter=',')
+        try:
+            url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&horizon={horizon}&apikey={self.api_key}'
+            
+            with requests.Session() as s:
+                download = s.get(url)
+                download.raise_for_status()  # Raise exception for bad status codes
+                decoded_content = download.content.decode('utf-8')
+                data = csv.DictReader(decoded_content.splitlines(), delimiter=',')
 
-            for row in data:
-                if row.get("symbol") == symbol:
-                    date_str = row.get("reportDate")
-                    if date_str:
-                        # Parse date string to datetime object
-                        date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                        result_items.append(
-                        StockEvent(
-                            stock=stock,
-                            type=EventType.EARNINGS_ANNOUNCEMENT,
-                            date=date,
-                            last_updated=datetime.now(timezone.utc),
-                            source=self.source
-                        )
-                    )
+                for row in data:
+                    # Match symbol to ensure correct data
+                    if row.get("symbol") == symbol:
+                        date_str = row.get("reportDate")
+                        if date_str:
+                            try:
+                                # Parse date string to datetime object
+                                date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                                result_items.append(
+                                    StockEvent(
+                                        stock=stock,
+                                        type=EventType.EARNINGS_ANNOUNCEMENT,
+                                        date=date,
+                                        last_updated=datetime.now(timezone.utc),
+                                        source=self.source
+                                    )
+                                )
+                            except ValueError as e:
+                                logger.warning(f"Invalid date format for earnings: {date_str}, error: {e}")
+                                continue
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Error fetching earnings data for {symbol}: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error fetching earnings for {symbol}: {str(e)}")
         
         return result_items
         
     def _getDividendsFromStock(self, *, stock: Stock) -> list[StockEvent]:
+        '''
+        Fetch dividend events for a stock.
+        
+        Uses Alpha Vantage's DIVIDENDS API to retrieve all dividend-related
+        dates including ex-dividend, declaration, record, and payment dates.
+        
+        Args:
+            stock: Stock object to get dividends for
+            
+        Returns:
+            List of StockEvent objects with various dividend event types
+            
+        Raises:
+            TypeError: If stock is not a Stock object
+            ValueError: If API request fails or returns invalid data
+        '''
+        # Type checking
+        if not isinstance(stock, Stock):
+            raise TypeError(f"Stock must be a Stock object, got {type(stock).__name__}")
         
         function = "DIVIDENDS"
-        symbol = str(Stock.symbol).upper()
+        symbol = stock.symbol.upper()
         result_items = []
         
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={self.api_key}'
-        data = requests.get(url)
-        results = data.json()
-        
-        # Check if the response symbol matches (it's at the root level)
-        if results.get("symbol") == symbol:
-            # Iterate over each 'data' entry
-            for item in results.get("data", []):
-                
-                return_dates_types = [
-                    ["ex_dividend_date", EventType.DIVIDEND_EX],
-                    ["declaration_date", EventType.DIVIDEND_DECLARATION],
-                    ["record_date", EventType.DIVIDEND_DECLARATION],
-                    ["payment_date", EventType.DIVIDEND_PAYMENT]
+        try:
+            url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={self.api_key}'
+            data = requests.get(url)
+            data.raise_for_status()  # Raise exception for bad status codes
+            results = data.json()
+            
+            # Check if the response symbol matches (it's at the root level)
+            if results.get("symbol") == symbol:
+                # Iterate over each 'data' entry
+                for item in results.get("data", []):
+                    
+                    # Map API fields to EventType enums
+                    return_dates_types = [
+                        ["ex_dividend_date", EventType.DIVIDEND_EX],
+                        ["declaration_date", EventType.DIVIDEND_DECLARATION],
+                        ["record_date", EventType.DIVIDEND_RECORD],
+                        ["payment_date", EventType.DIVIDEND_PAYMENT]
                     ]
-                
-                for dividend_type in return_dates_types:
-                    date_str = item.get(dividend_type[0])
-                    if date_str:
-                        # Parse date string to datetime object
-                        date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                        # Create for each item a StockEvent
-                        result_items.append(
-                            StockEvent(
-                                stock=stock,
-                                type=dividend_type[1],
-                                date=date,
-                                last_updated=datetime.now(timezone.utc),
-                                source=self.source
-                            )
-                        ) 
+                    
+                    for dividend_type in return_dates_types:
+                        date_str = item.get(dividend_type[0])
+                        if date_str:
+                            try:
+                                # Parse date string to datetime object
+                                date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                                # Create for each item a StockEvent
+                                result_items.append(
+                                    StockEvent(
+                                        stock=stock,
+                                        type=dividend_type[1],
+                                        date=date,
+                                        last_updated=datetime.now(timezone.utc),
+                                        source=self.source
+                                    )
+                                )
+                            except ValueError as e:
+                                logger.warning(f"Invalid date format for dividend {dividend_type[0]}: {date_str}, error: {e}")
+                                continue
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Error fetching dividend data for {symbol}: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error fetching dividends for {symbol}: {str(e)}")
             
         return result_items
         
     def _getSplitsFromStock(self, *, stock: Stock) -> list[StockEvent]:
+        '''
+        Fetch stock split events for a stock.
+        
+        Uses Alpha Vantage's SPLITS API to retrieve historical and
+        upcoming stock split information.
+        
+        Args:
+            stock: Stock object to get splits for
+            
+        Returns:
+            List of StockEvent objects with STOCK_SPLIT type
+            
+        Raises:
+            TypeError: If stock is not a Stock object
+            ValueError: If API request fails or returns invalid data
+        '''
+        # Type checking
+        if not isinstance(stock, Stock):
+            raise TypeError(f"Stock must be a Stock object, got {type(stock).__name__}")
         
         function = "SPLITS"
-        symbol = str(Stock.symbol).upper()
+        symbol = stock.symbol.upper()
         result_items = []
         
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={self.api_key}'
-        data = requests.get(url)
-        results = data.json()
-        
-        # Check if the response symbol matches (it's at the root level)
-        if results.get("symbol") == symbol:
-            # Iterate over each 'data' entry
-            for item in results.get("data", []):
-                date_str = item.get("effective_date")
-                if date_str:
-                    # Parse date string to datetime object
-                    date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                    # Create for each item a StockEvent
-                    result_items.append(
-                        StockEvent(
-                            stock=stock,
-                            type=EventType.STOCK_SPLIT,
-                            date=date,
-                            last_updated=datetime.now(timezone.utc),
-                            source=self.source
-                        )
-                    )
+        try:
+            url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={self.api_key}'
+            data = requests.get(url)
+            data.raise_for_status()  # Raise exception for bad status codes
+            results = data.json()
+            
+            # Check if the response symbol matches (it's at the root level)
+            if results.get("symbol") == symbol:
+                # Iterate over each 'data' entry
+                for item in results.get("data", []):
+                    date_str = item.get("effective_date")
+                    if date_str:
+                        try:
+                            # Parse date string to datetime object
+                            date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                            # Create for each item a StockEvent
+                            result_items.append(
+                                StockEvent(
+                                    stock=stock,
+                                    type=EventType.STOCK_SPLIT,
+                                    date=date,
+                                    last_updated=datetime.now(timezone.utc),
+                                    source=self.source
+                                )
+                            )
+                        except ValueError as e:
+                            logger.warning(f"Invalid date format for split effective_date: {date_str}, error: {e}")
+                            continue
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Error fetching split data for {symbol}: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error fetching splits for {symbol}: {str(e)}")
         
         return result_items
