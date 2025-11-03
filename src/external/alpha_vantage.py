@@ -1,4 +1,5 @@
 import csv
+import json
 import logging
 import requests
 from datetime import datetime, timezone
@@ -57,7 +58,13 @@ class AlphaVantage(ExternalApiBaseDefinition):
                 
                 url = f'https://www.alphavantage.co/query?function={function}&keywords={name}&apikey={self.api_key}'
                 data = requests.get(url)
+                data.raise_for_status()  # Raise exception for bad HTTP status codes
                 results = data.json()
+                
+                # Check for rate limit or error messages from Alpha Vantage
+                if 'Information' in results or 'Note' in results or 'Error Message' in results:
+                    error_msg = results.get('Information') or results.get('Note') or results.get('Error Message')
+                    raise ValueError(f"Alpha Vantage API error: {error_msg}")
                 
                 if 'bestMatches' in results and len(results['bestMatches']) > 0:
                     # Take the first (best) match
@@ -105,7 +112,13 @@ class AlphaVantage(ExternalApiBaseDefinition):
                 
                 url = f'https://www.alphavantage.co/query?function={function}&keywords={symbol}&apikey={self.api_key}'
                 data = requests.get(url)
+                data.raise_for_status()  # Raise exception for bad HTTP status codes
                 results = data.json()
+                
+                # Check for rate limit or error messages from Alpha Vantage
+                if 'Information' in results or 'Note' in results or 'Error Message' in results:
+                    error_msg = results.get('Information') or results.get('Note') or results.get('Error Message')
+                    raise ValueError(f"Alpha Vantage API error: {error_msg}")
                 
                 if 'bestMatches' in results and len(results['bestMatches']) > 0:
                     # Find exact symbol match or take the first result
@@ -226,6 +239,14 @@ class AlphaVantage(ExternalApiBaseDefinition):
                 download = s.get(url)
                 download.raise_for_status()  # Raise exception for bad status codes
                 decoded_content = download.content.decode('utf-8')
+                
+                # Check if response is JSON error message instead of CSV
+                if decoded_content.strip().startswith('{'):
+                    error_response = json.loads(decoded_content)
+                    if 'Information' in error_response or 'Note' in error_response or 'Error Message' in error_response:
+                        error_msg = error_response.get('Information') or error_response.get('Note') or error_response.get('Error Message')
+                        raise ValueError(f"Alpha Vantage API error: {error_msg}")
+                
                 data = csv.DictReader(decoded_content.splitlines(), delimiter=',')
 
                 for row in data:
@@ -286,6 +307,11 @@ class AlphaVantage(ExternalApiBaseDefinition):
             data.raise_for_status()  # Raise exception for bad status codes
             results = data.json()
             
+            # Check for rate limit or error messages from Alpha Vantage
+            if 'Information' in results or 'Note' in results or 'Error Message' in results:
+                error_msg = results.get('Information') or results.get('Note') or results.get('Error Message')
+                raise ValueError(f"Alpha Vantage API error: {error_msg}")
+            
             # Check if the response symbol matches (it's at the root level)
             if results.get("symbol") == symbol:
                 # Iterate over each 'data' entry
@@ -316,7 +342,9 @@ class AlphaVantage(ExternalApiBaseDefinition):
                                     )
                                 )
                             except ValueError as e:
-                                logger.warning(f"Invalid date format for dividend {dividend_type[0]}: {date_str}, error: {e}")
+                                # Only log if date_str is not "None" (expected for future unannounced dates)
+                                if date_str != "None":
+                                    logger.warning(f"Invalid date format for dividend {dividend_type[0]}: {date_str}, error: {e}")
                                 continue
         except requests.exceptions.RequestException as e:
             raise ValueError(f"Error fetching dividend data for {symbol}: {str(e)}")
@@ -355,6 +383,11 @@ class AlphaVantage(ExternalApiBaseDefinition):
             data = requests.get(url)
             data.raise_for_status()  # Raise exception for bad status codes
             results = data.json()
+            
+            # Check for rate limit or error messages from Alpha Vantage
+            if 'Information' in results or 'Note' in results or 'Error Message' in results:
+                error_msg = results.get('Information') or results.get('Note') or results.get('Error Message')
+                raise ValueError(f"Alpha Vantage API error: {error_msg}")
             
             # Check if the response symbol matches (it's at the root level)
             if results.get("symbol") == symbol:

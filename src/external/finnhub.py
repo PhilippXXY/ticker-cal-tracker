@@ -1,6 +1,7 @@
 import finnhub
 import logging
 from datetime import datetime, timezone
+from finnhub.exceptions import FinnhubAPIException
 
 from external.external_base import ExternalApiBaseDefinition
 from models.stock_model import Stock
@@ -52,7 +53,10 @@ class Finnhub(ExternalApiBaseDefinition):
                     )
                 else:
                     raise ValueError(f"No stock data found for symbol: {symbol}")
-                    
+            
+            except FinnhubAPIException as e:
+                # Handle Finnhub-specific API errors (rate limits, invalid requests, etc.)
+                raise ValueError(f"Finnhub API error for symbol {symbol}: {str(e)}")
             except Exception as e:
                 raise ValueError(f"Error fetching stock data for symbol {symbol}: {str(e)}")
         else:
@@ -102,7 +106,10 @@ class Finnhub(ExternalApiBaseDefinition):
                         raise ValueError(f"No valid symbol found in search results for name: {name}")
                 else:
                     raise ValueError(f"No stocks found for name: {name}")
-                    
+            
+            except FinnhubAPIException as e:
+                # Handle Finnhub-specific API errors (rate limits, invalid requests, etc.)
+                raise ValueError(f"Finnhub API error for name '{name}': {str(e)}")
             except Exception as e:
                 raise ValueError(f"Error fetching stock data for name '{name}': {str(e)}")
         else:
