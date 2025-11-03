@@ -47,7 +47,7 @@ class Finnhub(ExternalApiBaseDefinition):
                     # Build Stock object from API response
                     return Stock(  
                         name=data.get('name', ''),
-                        symbol=symbol,
+                        symbol=symbol.upper(),
                         last_updated=datetime.now(timezone.utc)
                     )
                 else:
@@ -93,7 +93,7 @@ class Finnhub(ExternalApiBaseDefinition):
                         if profile_data and 'name' in profile_data:
                             return Stock(
                                 name=profile_data.get('name', ''),
-                                symbol=symbol,
+                                symbol=symbol.upper(),
                                 last_updated=datetime.now(timezone.utc)
                             )
                         else:
