@@ -1,17 +1,19 @@
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from enum import Enum
+from models.stock_model import Stock
 
 class EventType(str, Enum):
-    SPLIT = "SPLIT"
-    SHAREHOLDER_MEETING = "SHAREHOLDER_MEETING"
-    EX_DIVIDEND = "EX_DIVIDEND"
-    CUM_DIVIDEND = "CUM_DIVIDEND"
+    EARNINGS_ANNOUNCEMENT = "EARNINGS_ANNOUNCEMENT"
+    DIVIDEND_EX = "DIVIDEND_EX"
+    DIVIDEND_DECLARATION = "DIVIDEND_DECLARATION"
+    DIVIDEND_RECORD = "DIVIDEND_RECORD"
+    DIVIDEND_PAYMENT = "DIVIDEND_PAYMENT"
+    STOCK_SPLIT = "STOCK_SPLIT"
     
 @dataclass
 class StockEvent:
-    id: int
+    stock: Stock
     type: EventType
     date: datetime
     last_updated: datetime

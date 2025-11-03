@@ -1,6 +1,7 @@
 import finnhub
 import logging
 from datetime import datetime, timezone
+from finnhub.exceptions import FinnhubAPIException
 
 from external.external_base import ExternalApiBaseDefinition
 from models.stock_model import Stock
@@ -41,18 +42,21 @@ class Finnhub(ExternalApiBaseDefinition):
             try:
                 # Call Finnhub company profile API
                 data = self.finnhub_client.company_profile2(symbol=symbol)
-                print(data)
+                logger.debug(f"Company profile data for symbol '{symbol}': {data}")
                 
                 if data and 'name' in data:
                     # Build Stock object from API response
                     return Stock(  
                         name=data.get('name', ''),
-                        symbol=symbol,
+                        symbol=data.get('ticker', symbol),
                         last_updated=datetime.now(timezone.utc)
                     )
                 else:
                     raise ValueError(f"No stock data found for symbol: {symbol}")
-                    
+            
+            except FinnhubAPIException as e:
+                # Handle Finnhub-specific API errors (rate limits, invalid requests, etc.)
+                raise ValueError(f"Finnhub API error for symbol {symbol}: {str(e)}")
             except Exception as e:
                 raise ValueError(f"Error fetching stock data for symbol {symbol}: {str(e)}")
         else:
@@ -93,7 +97,7 @@ class Finnhub(ExternalApiBaseDefinition):
                         if profile_data and 'name' in profile_data:
                             return Stock(
                                 name=profile_data.get('name', ''),
-                                symbol=symbol,
+                                symbol=symbol.upper(),
                                 last_updated=datetime.now(timezone.utc)
                             )
                         else:
@@ -102,7 +106,10 @@ class Finnhub(ExternalApiBaseDefinition):
                         raise ValueError(f"No valid symbol found in search results for name: {name}")
                 else:
                     raise ValueError(f"No stocks found for name: {name}")
-                    
+            
+            except FinnhubAPIException as e:
+                # Handle Finnhub-specific API errors (rate limits, invalid requests, etc.)
+                raise ValueError(f"Finnhub API error for name '{name}': {str(e)}")
             except Exception as e:
                 raise ValueError(f"Error fetching stock data for name '{name}': {str(e)}")
         else:
