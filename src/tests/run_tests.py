@@ -39,7 +39,8 @@ def run_unit_tests(verbose=True):
     
     tests = [
         'tests.test_alpha_vantage',
-        'tests.test_finnhub'
+        'tests.test_finnhub',
+        'tests.test_external_api_facade'
     ]
     
     # Skip integration tests
