@@ -7,9 +7,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 
-from external.alpha_vantage import AlphaVantage
-from models.stock_model import Stock
-from models.stock_event_model import StockEvent, EventType
+from src.external.alpha_vantage import AlphaVantage
+from src.models.stock_model import Stock
+from src.models.stock_event_model import StockEvent, EventType
 
 # Load environment variables from .env file
 load_dotenv(Path('.env'))

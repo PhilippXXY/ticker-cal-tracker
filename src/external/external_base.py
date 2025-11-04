@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from dotenv import load_dotenv
 from pathlib import Path
 
-from models.stock_model import Stock
+from src.models.stock_model import Stock
 
 class ExternalApiBaseDefinition(ABC):
     '''Base class for external financial data API integrations.

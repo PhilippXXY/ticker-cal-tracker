@@ -21,11 +21,12 @@ class Follow {
 }
 
 enum EventType {
-  EARNINGS
-  DIVIDEND
-  SPLIT
-  MEETING
-  OTHER
+  EARNINGS_ANNOUNCEMENT
+  DIVIDEND_EX
+  DIVIDEND_DECLARATION
+  DIVIDEND_RECORD
+  DIVIDEND_PAYMENT
+  STOCK_SPLIT
 }
 
 class StockEvent {
@@ -33,8 +34,8 @@ class StockEvent {
   +stock_ticker: string
   +type: EventType
   +event_date: date
-  +payload_json: json
-  +fetched_at: datetime
+  +created_at: datetime
+  +last_updated: datetime
   +source: string
 }
 
@@ -42,20 +43,20 @@ class Watchlist {
   +id: UUID
   +user_id: UUID
   +name: string
-  +url: string
+  +calendar_url: string
   +created_at: datetime
-  +include_earnings: bool
-  +include_dividends: bool
-  +include_splits: bool
-  +include_meetings: bool
-  +detail_level: string  // 'minimal'|'standard'|'rich'
-  +default_reminder: datetime
+  +include_earnings_announcement: bool
+  +include_dividend_ex: bool
+  +include_dividend_declaration: bool
+  +include_dividend_dividend_record: bool
+  +include_dividend_payment: bool
+  +include_stock_split: bool
+  +reminder_before: datetime
 }
 
 class UserPreference {
   +user_id: UUID
-  +default_detail_level: string
-  +default_reminder: datetime
+  +default_reminder_before: datetime
   +created_at: datetime
   +updated_at: datetime
 }

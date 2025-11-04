@@ -38,13 +38,16 @@ def run_unit_tests(verbose=True):
     print("These tests use mocks and make NO real API calls.\n")
     
     tests = [
-        'tests.test_alpha_vantage',
-        'tests.test_finnhub',
-        'tests.test_external_api_facade'
+        'src.tests.test_alpha_vantage',
+        'src.tests.test_finnhub',
+        'src.tests.test_external_api_facade',
+        'src.tests.test_local_adapter',
+        'src.tests.test_adapter_factory'
     ]
     
     # Skip integration tests
     os.environ['SKIP_INTEGRATION_TESTS'] = '1'
+    os.environ['SKIP_DB_INTEGRATION_TESTS'] = '1'
     
     for test in tests:
         print(f"\nRunning {test}...")
@@ -52,7 +55,7 @@ def run_unit_tests(verbose=True):
         if verbose:
             cmd.append('-v')
         
-        result = subprocess.run(cmd, cwd='src', capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"\n✗ {test} failed!")
             print("stdout:\n", result.stdout)
@@ -65,10 +68,10 @@ def run_unit_tests(verbose=True):
     return True
 
 
-def run_integration_tests(verbose=True):
-    '''Run integration tests (makes real API calls).'''
+def run_api_integration_tests(verbose=True):
+    '''Run API integration tests (makes real API calls).'''
     print("\n" + "="*70)
-    print("Running Integration Tests")
+    print("Running API Integration Tests")
     print("="*70)
     print("⚠️  These tests make REAL API calls and count against rate limits!\n")
     
@@ -91,19 +94,21 @@ def run_integration_tests(verbose=True):
         print("  Finnhub: 60 requests/minute")
     
     # Ask for confirmation
-    response = input("\nProceed with integration tests? (y/N): ")
+    response = input("\nProceed with API integration tests? (y/N): ")
     if response.lower() != 'y':
-        print("Integration tests cancelled.")
+        print("API integration tests cancelled.")
         return False
     
-    # Remove skip flag
+    # Remove skip flag for API tests
     os.environ.pop('SKIP_INTEGRATION_TESTS', None)
+    # Keep database tests skipped
+    os.environ['SKIP_DB_INTEGRATION_TESTS'] = '1'
     
     tests = []
     if has_alpha_vantage:
-        tests.append('tests.test_alpha_vantage_integration')
+        tests.append('src.tests.test_alpha_vantage_integration')
     if has_finnhub:
-        tests.append('tests.test_finnhub_integration')
+        tests.append('src.tests.test_finnhub_integration')
     
     success = True
     for test in tests:
@@ -112,7 +117,7 @@ def run_integration_tests(verbose=True):
         if verbose:
             cmd.append('-v')
         
-        result = subprocess.run(cmd, cwd='src', capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"\n⚠️  {test} had failures (may be due to rate limits)")
             print("stdout:\n", result.stdout)
@@ -121,12 +126,91 @@ def run_integration_tests(verbose=True):
     
     if success:
         print("\n" + "="*70)
-        print("✓ All integration tests completed!")
+        print("✓ All API integration tests completed!")
         print("="*70)
     else:
         print("\n" + "="*70)
-        print("⚠️  Some integration tests failed - check output above")
+        print("⚠️  Some API integration tests failed - check output above")
         print("="*70)
+    
+    return success
+
+
+def run_db_integration_tests(verbose=True):
+    '''Run database integration tests (requires running database).'''
+    print("\n" + "="*70)
+    print("Running Database Integration Tests")
+    print("="*70)
+    print("⚠️  These tests require a running PostgreSQL database!\n")
+    
+    # Check if database is accessible
+    print("Checking database connection...")
+    db_host = os.getenv('DB_HOST', '127.0.0.1')
+    db_port = os.getenv('DB_PORT', '5432')
+    db_name = os.getenv('DB_NAME', 'ticker_calendar_local_dev_db')
+    
+    print(f"  Database: {db_name}")
+    print(f"  Host: {db_host}:{db_port}")
+    
+    # Ask for confirmation
+    response = input("\nProceed with database integration tests? (y/N): ")
+    if response.lower() != 'y':
+        print("Database integration tests cancelled.")
+        return False
+    
+    # Remove skip flag for DB tests
+    os.environ.pop('SKIP_DB_INTEGRATION_TESTS', None)
+    # Keep API tests skipped
+    os.environ['SKIP_INTEGRATION_TESTS'] = '1'
+    
+    tests = [
+        'src.tests.test_local_adapter_integration',
+        'src.tests.test_adapter_factory_integration'
+    ]
+    
+    success = True
+    for test in tests:
+        print(f"\nRunning {test}...")
+        cmd = ['python', '-m', 'unittest', test]
+        if verbose:
+            cmd.append('-v')
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"\n⚠️  {test} had failures")
+            print("stdout:\n", result.stdout)
+            print("stderr:\n", result.stderr)
+            print("\nMake sure the database is running:")
+            print("  python database/local/manage_db.py setup")
+            success = False
+    
+    if success:
+        print("\n" + "="*70)
+        print("✓ All database integration tests completed!")
+        print("="*70)
+    else:
+        print("\n" + "="*70)
+        print("⚠️  Some database integration tests failed - check output above")
+        print("="*70)
+    
+    return success
+
+
+def run_integration_tests(verbose=True):
+    '''Run both API and database integration tests.'''
+    print("\n" + "="*70)
+    print("Running ALL Integration Tests")
+    print("="*70)
+    
+    success = True
+    
+    # Run API integration tests
+    if not run_api_integration_tests(verbose):
+        success = False
+    
+    # Run database integration tests
+    if not run_db_integration_tests(verbose):
+        success = False
     
     return success
 
@@ -153,29 +237,43 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
-  %(prog)s --unit              # Run unit tests only (no API calls)
-  %(prog)s --integration       # Run integration tests only (real API calls)
-  %(prog)s --all              # Run all tests
-  %(prog)s --unit -q          # Run unit tests quietly
+  %(prog)s --unit                    # Run unit tests only (no API calls)
+  %(prog)s --integration             # Run all integration tests (API + DB)
+  %(prog)s --api-integration         # Run API integration tests only
+  %(prog)s --db-integration          # Run database integration tests only
+  %(prog)s --all                     # Run all tests
+  %(prog)s --unit -q                 # Run unit tests quietly
         '''
     )
     
     parser.add_argument(
         '--unit',
         action='store_true',
-        help='Run unit tests only (no real API calls)'
+        help='Run unit tests only (no real API calls or database)'
     )
     
     parser.add_argument(
         '--integration',
         action='store_true',
-        help='Run integration tests only (makes real API calls)'
+        help='Run all integration tests (API and database)'
+    )
+    
+    parser.add_argument(
+        '--api-integration',
+        action='store_true',
+        help='Run API integration tests only (makes real API calls)'
+    )
+    
+    parser.add_argument(
+        '--db-integration',
+        action='store_true',
+        help='Run database integration tests only (requires running database)'
     )
     
     parser.add_argument(
         '--all',
         action='store_true',
-        help='Run both unit and integration tests'
+        help='Run all tests (unit + API integration + database integration)'
     )
     
     parser.add_argument(
@@ -187,7 +285,7 @@ Examples:
     args = parser.parse_args()
     
     # Default to unit tests if nothing specified
-    if not (args.unit or args.integration or args.all):
+    if not (args.unit or args.integration or args.api_integration or args.db_integration or args.all):
         print("No test type specified, defaulting to --unit")
         print("Use --help for more options\n")
         args.unit = True
@@ -199,6 +297,10 @@ Examples:
             success = run_all_tests(verbose)
         elif args.integration:
             success = run_integration_tests(verbose)
+        elif args.api_integration:
+            success = run_api_integration_tests(verbose)
+        elif args.db_integration:
+            success = run_db_integration_tests(verbose)
         else:  # unit tests
             success = run_unit_tests(verbose)
         

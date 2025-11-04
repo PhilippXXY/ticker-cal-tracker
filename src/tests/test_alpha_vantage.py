@@ -5,15 +5,15 @@ from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime, timezone
 import requests
 
-from external.alpha_vantage import AlphaVantage
-from models.stock_model import Stock
-from models.stock_event_model import StockEvent, EventType
+from src.external.alpha_vantage import AlphaVantage
+from src.models.stock_model import Stock
+from src.models.stock_event_model import StockEvent, EventType
 
 
 class TestAlphaVantageInit(unittest.TestCase):
     '''Test AlphaVantage initialization.'''
     
-    @patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__')
+    @patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__')
     def test_init_success(self, mock_super_init):
         '''Test successful initialization.'''
         mock_super_init.return_value = None
@@ -23,7 +23,7 @@ class TestAlphaVantageInit(unittest.TestCase):
         mock_super_init.assert_called_once_with(api_key_name='API_KEY_ALPHA_VANTAGE')
         self.assertEqual(av.source, 'AlphaVantage')
     
-    @patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__')
+    @patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__')
     def test_init_raises_error_no_api_key(self, mock_super_init):
         '''Test initialization fails when API key is missing.'''
         mock_super_init.side_effect = ValueError("API key not found")
@@ -37,11 +37,11 @@ class TestGetStockInfoFromName(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures.'''
-        with patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
+        with patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
             self.av = AlphaVantage()
             self.av.api_key = 'test_api_key'
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_name_success(self, mock_get):
         '''Test successful stock lookup by name.'''
         mock_response = Mock()
@@ -65,7 +65,7 @@ class TestGetStockInfoFromName(unittest.TestCase):
         self.assertIsNotNone(result.last_updated)
         mock_get.assert_called_once()
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_name_no_matches(self, mock_get):
         '''Test when no matches are found.'''
         mock_response = Mock()
@@ -77,7 +77,7 @@ class TestGetStockInfoFromName(unittest.TestCase):
         
         self.assertIn('No stocks found', str(context.exception))
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_name_invalid_data(self, mock_get):
         '''Test when API returns invalid data.'''
         mock_response = Mock()
@@ -117,7 +117,7 @@ class TestGetStockInfoFromName(unittest.TestCase):
         
         self.assertIn('Name must be a string', str(context.exception))
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_name_api_error(self, mock_get):
         '''Test when API request fails.'''
         mock_get.side_effect = requests.exceptions.RequestException("API Error")
@@ -125,7 +125,7 @@ class TestGetStockInfoFromName(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.av.getStockInfoFromName(name='Apple')
         
-        self.assertIn('Error fetching stock data', str(context.exception))
+        self.assertIn('Network error fetching stock data', str(context.exception))
 
 
 class TestGetStockInfoFromSymbol(unittest.TestCase):
@@ -133,11 +133,11 @@ class TestGetStockInfoFromSymbol(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures.'''
-        with patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
+        with patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
             self.av = AlphaVantage()
             self.av.api_key = 'test_api_key'
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_symbol_exact_match(self, mock_get):
         '''Test successful lookup with exact symbol match.'''
         mock_response = Mock()
@@ -163,7 +163,7 @@ class TestGetStockInfoFromSymbol(unittest.TestCase):
         self.assertEqual(result.symbol, 'AAPL')
         self.assertEqual(result.name, 'Apple Inc')
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_symbol_no_exact_match(self, mock_get):
         '''Test when no exact match but results exist.'''
         mock_response = Mock()
@@ -183,7 +183,7 @@ class TestGetStockInfoFromSymbol(unittest.TestCase):
         # Should return first result when no exact match
         self.assertEqual(result.symbol, 'AAPL.LON')
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_symbol_case_insensitive(self, mock_get):
         '''Test symbol matching is case insensitive.'''
         mock_response = Mock()
@@ -216,7 +216,7 @@ class TestGetStockInfoFromSymbol(unittest.TestCase):
         
         self.assertIn('Symbol must be a string', str(context.exception))
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_stock_info_from_symbol_no_results(self, mock_get):
         '''Test when no results found.'''
         mock_response = Mock()
@@ -234,7 +234,7 @@ class TestGetStockEventDatesFromStock(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures.'''
-        with patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
+        with patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
             self.av = AlphaVantage()
             self.av.api_key = 'test_api_key'
             self.av.source = 'AlphaVantage'
@@ -402,7 +402,7 @@ class TestGetEarningsAnnouncementsFromStock(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures.'''
-        with patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
+        with patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
             self.av = AlphaVantage()
             self.av.api_key = 'test_api_key'
             self.av.source = 'AlphaVantage'
@@ -413,7 +413,7 @@ class TestGetEarningsAnnouncementsFromStock(unittest.TestCase):
             last_updated=datetime.now(timezone.utc)
         )
     
-    @patch('external.alpha_vantage.requests.Session')
+    @patch('src.external.alpha_vantage.requests.Session')
     def test_get_earnings_success(self, mock_session):
         '''Test successful earnings fetch.'''
         from datetime import timedelta
@@ -445,7 +445,7 @@ class TestGetEarningsAnnouncementsFromStock(unittest.TestCase):
         self.assertEqual(result[0].type, EventType.EARNINGS_ANNOUNCEMENT)
         self.assertEqual(result[0].stock, self.test_stock)
     
-    @patch('external.alpha_vantage.requests.Session')
+    @patch('src.external.alpha_vantage.requests.Session')
     def test_get_earnings_wrong_symbol(self, mock_session):
         '''Test when CSV contains different symbol.'''
         csv_data = "symbol,reportDate,fiscalDateEnding\nTSLA,2025-11-05,2025-09-30"
@@ -465,7 +465,7 @@ class TestGetEarningsAnnouncementsFromStock(unittest.TestCase):
         # Should return empty list when symbol doesn't match
         self.assertEqual(len(result), 0)
     
-    @patch('external.alpha_vantage.requests.Session')
+    @patch('src.external.alpha_vantage.requests.Session')
     def test_get_earnings_invalid_date_format(self, mock_session):
         '''Test handling of invalid date format.'''
         csv_data = "symbol,reportDate,fiscalDateEnding\nAAPL,invalid-date,2025-09-30"
@@ -489,7 +489,7 @@ class TestGetEarningsAnnouncementsFromStock(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.av._getEarningsAnnouncementsFromStock(stock="not a stock") # pyright: ignore[reportArgumentType]
     
-    @patch('external.alpha_vantage.requests.Session')
+    @patch('src.external.alpha_vantage.requests.Session')
     def test_get_earnings_request_exception(self, mock_session):
         '''Test handling of request exception.'''
         mock_response = Mock()
@@ -512,7 +512,7 @@ class TestGetDividendsFromStock(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures.'''
-        with patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
+        with patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
             self.av = AlphaVantage()
             self.av.api_key = 'test_api_key'
             self.av.source = 'AlphaVantage'
@@ -523,7 +523,7 @@ class TestGetDividendsFromStock(unittest.TestCase):
             last_updated=datetime.now(timezone.utc)
         )
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_dividends_success(self, mock_get):
         '''Test successful dividend fetch with all date types.'''
         mock_response = Mock()
@@ -554,7 +554,7 @@ class TestGetDividendsFromStock(unittest.TestCase):
             EventType.DIVIDEND_PAYMENT
         })
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_dividends_partial_dates(self, mock_get):
         '''Test when only some dividend dates are present.'''
         mock_response = Mock()
@@ -575,7 +575,7 @@ class TestGetDividendsFromStock(unittest.TestCase):
         # Should only create 2 events
         self.assertEqual(len(result), 2)
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_dividends_wrong_symbol(self, mock_get):
         '''Test when API returns different symbol.'''
         mock_response = Mock()
@@ -590,7 +590,7 @@ class TestGetDividendsFromStock(unittest.TestCase):
         
         self.assertEqual(len(result), 0)
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_dividends_invalid_date(self, mock_get):
         '''Test handling of invalid date format.'''
         mock_response = Mock()
@@ -614,7 +614,7 @@ class TestGetDividendsFromStock(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.av._getDividendsFromStock(stock=None) # pyright: ignore[reportArgumentType]
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_dividends_request_exception(self, mock_get):
         '''Test handling of request exception.'''
         mock_get.side_effect = requests.exceptions.RequestException("Network error")
@@ -630,7 +630,7 @@ class TestGetSplitsFromStock(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures.'''
-        with patch('external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
+        with patch('src.external.alpha_vantage.ExternalApiBaseDefinition.__init__', return_value=None):
             self.av = AlphaVantage()
             self.av.api_key = 'test_api_key'
             self.av.source = 'AlphaVantage'
@@ -641,7 +641,7 @@ class TestGetSplitsFromStock(unittest.TestCase):
             last_updated=datetime.now(timezone.utc)
         )
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_splits_success(self, mock_get):
         '''Test successful stock split fetch.'''
         mock_response = Mock()
@@ -667,7 +667,7 @@ class TestGetSplitsFromStock(unittest.TestCase):
         self.assertEqual(result[0].type, EventType.STOCK_SPLIT)
         self.assertEqual(result[0].stock, self.test_stock)
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_splits_empty_data(self, mock_get):
         '''Test when no splits exist.'''
         mock_response = Mock()
@@ -682,7 +682,7 @@ class TestGetSplitsFromStock(unittest.TestCase):
         
         self.assertEqual(len(result), 0)
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_splits_wrong_symbol(self, mock_get):
         '''Test when API returns different symbol.'''
         mock_response = Mock()
@@ -702,7 +702,7 @@ class TestGetSplitsFromStock(unittest.TestCase):
         
         self.assertEqual(len(result), 0)
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_splits_invalid_date(self, mock_get):
         '''Test handling of invalid date format.'''
         mock_response = Mock()
@@ -727,7 +727,7 @@ class TestGetSplitsFromStock(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.av._getSplitsFromStock(stock=123) # pyright: ignore[reportArgumentType]
     
-    @patch('external.alpha_vantage.requests.get')
+    @patch('src.external.alpha_vantage.requests.get')
     def test_get_splits_request_exception(self, mock_get):
         '''Test handling of request exception.'''
         mock_response = Mock()

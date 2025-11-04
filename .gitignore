@@ -208,3 +208,10 @@ __marimo__/
 
 # Mac
 .DS_Store
+
+# Database / Docker
+# Postgres data is stored in Docker volumes, no need to track locally
+# Schema and seed files ARE tracked in version control
+*.db
+*.sqlite
+*.sqlite3

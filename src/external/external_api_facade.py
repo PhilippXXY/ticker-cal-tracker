@@ -1,8 +1,8 @@
 import logging
-from external.alpha_vantage import AlphaVantage
-from external.finnhub import Finnhub
-from models.stock_event_model import EventType, StockEvent
-from models.stock_model import Stock
+from .alpha_vantage import AlphaVantage
+from .finnhub import Finnhub
+from src.models.stock_event_model import EventType, StockEvent
+from src.models.stock_model import Stock
 
 logger = logging.getLogger(__name__)
 

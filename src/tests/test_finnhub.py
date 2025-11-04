@@ -3,14 +3,11 @@
 import unittest
 from unittest.mock import patch, Mock, MagicMock
 import os
-import sys
 from datetime import datetime, timezone
 
-# Add parent directory to sys.path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from external.finnhub import Finnhub
-from models.stock_model import Stock
+from src.external.finnhub import Finnhub
+from src.models.stock_model import Stock
 
 
 class TestFinnhub(unittest.TestCase):
@@ -29,7 +26,7 @@ class TestFinnhub(unittest.TestCase):
         self.api_key_patch.start()
         
         # Mock the Finnhub client
-        self.finnhub_client_patch = patch('external.finnhub.finnhub.Client')
+        self.finnhub_client_patch = patch('src.external.finnhub.finnhub.Client')
         self.mock_client_class = self.finnhub_client_patch.start()
         self.mock_client = Mock()
         self.mock_client_class.return_value = self.mock_client
@@ -238,7 +235,7 @@ class TestFinnhub(unittest.TestCase):
     
     # ===== Tests for Initialization =====
     
-    @patch('external.finnhub.finnhub.Client')
+    @patch('src.external.finnhub.finnhub.Client')
     def test_initialization_success(self, mock_client_class):
         """Test successful initialization with valid API key."""
         with patch.dict(os.environ, {'API_KEY_FINNHUB': 'valid_api_key'}):
@@ -247,7 +244,7 @@ class TestFinnhub(unittest.TestCase):
             # Verify client was initialized with correct API key
             mock_client_class.assert_called_once_with(api_key='valid_api_key')
     
-    @patch('external.finnhub.finnhub.Client')
+    @patch('src.external.finnhub.finnhub.Client')
     def test_initialization_missing_api_key(self, mock_client_class):
         """Test initialization failure when API key is missing."""
         # Stop the setUp patch temporarily to test missing API key scenario
@@ -255,7 +252,7 @@ class TestFinnhub(unittest.TestCase):
         try:
             with patch.dict(os.environ, {}, clear=True):
                 # Mock load_dotenv to prevent loading from .env file
-                with patch('external.external_base.load_dotenv'):
+                with patch('src.external.external_base.load_dotenv'):
                     with self.assertRaises(ValueError) as context:
                         Finnhub()
                     
