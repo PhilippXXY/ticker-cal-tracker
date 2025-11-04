@@ -79,9 +79,19 @@ While running the application, you can access the API documentation at `ip:port/
 
 ## Testing
 
-### Unit Tests (No API Calls)
+The project has three types of tests that can be run independently:
 
-Run unit tests that use mocks and don't make real API calls:
+| Test Type | Command | Requires | API Calls | Database |
+|-----------|---------|----------|-----------|----------|
+| **Unit Tests** | `--unit` | Nothing | No | No |
+| **API Integration** | `--api-integration` | API keys | Yes (rate limited) | No |
+| **Database Integration** | `--db-integration` | Running DB | No | Yes |
+| **All Integration** | `--integration` | API keys + DB | Yes | Yes |
+| **All Tests** | `--all` | API keys + DB | Yes | Yes |
+
+### Unit Tests (No External Dependencies)
+
+Run unit tests that use mocks and don't make real API calls or require a database:
 
 ```bash
 # Using the test runner
@@ -91,29 +101,67 @@ python src/tests/run_tests.py --unit
 cd src
 python -m unittest tests.test_alpha_vantage -v
 python -m unittest tests.test_finnhub -v
+python -m unittest tests.test_local_adapter -v
 ```
 
-### Integration Tests (Real API Calls)
+### Integration Tests
 
-Integration tests verify the actual external APIs return expected data. **These make real API calls and count against rate limits!**
+Integration tests are split into two independent categories so you can run them separately:
 
-The API keys need to be in your `.env` file in the project root:
+#### 1. API Integration Tests (Real API Calls - Rate Limited)
 
+These tests verify external APIs (Alpha Vantage, Finnhub) return expected data. 
+
+**These make REAL API calls and count against rate limits!**
+- Alpha Vantage: 25 requests/day, 5 requests/minute
+- Finnhub: 60 requests/minute
+
+**Setup:** Add API keys to `.env` file in project root:
 ```
 API_KEY_ALPHA_VANTAGE=your_alpha_vantage_key_here
 API_KEY_FINNHUB=your_finnhub_key_here
 ```
 
-Then run the integration tests:
+**Run API integration tests ONLY:**
+```bash
+python src/tests/run_tests.py --api-integration
+```
+
+#### 2. Database Integration Tests (Requires Running Database)
+
+These tests verify the database adapter works correctly with PostgreSQL. **No API calls are made.**
+
+**Setup:** Ensure the database is running:
+```bash
+python database/local/manage_db.py setup  # First time
+# or
+python database/local/manage_db.py start  # If already set up
+```
+
+**Run database integration tests only:**
+```bash
+python src/tests/run_tests.py --db-integration
+```
+
+#### Run Both Integration Test Types Together
+
+If you want to run all integration tests in one command:
 
 ```bash
-# Using the test runner (with confirmation prompt)
 python src/tests/run_tests.py --integration
+```
 
-# Or directly with unittest
+#### Direct unittest Commands
+
+You can also run tests directly:
+```bash
 cd src
+# API integration tests only
 python -m unittest tests.test_alpha_vantage_integration -v
 python -m unittest tests.test_finnhub_integration -v
+
+# Database integration tests only
+python -m unittest tests.test_local_adapter_integration -v
 ```
 
 ### Run All Tests
