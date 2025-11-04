@@ -125,7 +125,7 @@ class TestGetStockInfoFromName(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.av.getStockInfoFromName(name='Apple')
         
-        self.assertIn('Error fetching stock data', str(context.exception))
+        self.assertIn('Network error fetching stock data', str(context.exception))
 
 
 class TestGetStockInfoFromSymbol(unittest.TestCase):
