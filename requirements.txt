@@ -1,9 +1,11 @@
-Flask
-flask-smorest
-marshmallow
-python-dotenv
-finnhub-python
-
+# Web Framework
+Flask==3.0.3
+flask-smorest==0.44.0
+marshmallow==3.21.1
+# System
+python-dotenv==1.0.1
+# External API
+finnhub-python==2.4.21
 # Database
-SQLAlchemy>=2.0.0
-psycopg2-binary>=2.9.0
+SQLAlchemy==2.0.36        # ORM + engine management for PostgreSQL adapters
+psycopg2-binary==2.9.9    # PostgreSQL driver bundled with native libs for local dev
