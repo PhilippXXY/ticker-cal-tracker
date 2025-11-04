@@ -6,18 +6,14 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from database.local_adapter import LocalDatabaseAdapter
+from src.database.local_adapter import LocalDatabaseAdapter
 
 
 class TestLocalDatabaseAdapterInitialization(unittest.TestCase):
     """Test LocalDatabaseAdapter initialization."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_init_with_default_parameters(self, mock_sessionmaker, mock_create_engine):
         """Test initialization with default parameters."""
         mock_engine = Mock(spec=Engine)
@@ -45,8 +41,8 @@ class TestLocalDatabaseAdapterInitialization(unittest.TestCase):
         self.assertEqual(call_args[1]['echo'], False)
         self.assertTrue(call_args[1]['pool_pre_ping'])
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_init_with_custom_parameters(self, mock_sessionmaker, mock_create_engine):
         """Test initialization with custom parameters."""
         mock_engine = Mock(spec=Engine)
@@ -80,8 +76,8 @@ class TestLocalDatabaseAdapterInitialization(unittest.TestCase):
         self.assertEqual(call_args[1]['max_overflow'], 20)
         self.assertEqual(call_args[1]['echo'], True)
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_session_factory_created(self, mock_sessionmaker, mock_create_engine):
         """Test that session factory is created with engine."""
         mock_engine = Mock(spec=Engine)
@@ -99,8 +95,8 @@ class TestLocalDatabaseAdapterInitialization(unittest.TestCase):
 class TestLocalDatabaseAdapterGetEngine(unittest.TestCase):
     """Test get_engine method."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_get_engine_returns_engine(self, mock_sessionmaker, mock_create_engine):
         """Test that get_engine returns the SQLAlchemy engine."""
         mock_engine = Mock(spec=Engine)
@@ -115,8 +111,8 @@ class TestLocalDatabaseAdapterGetEngine(unittest.TestCase):
 class TestLocalDatabaseAdapterGetSession(unittest.TestCase):
     """Test get_session context manager."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_get_session_context_manager(self, mock_sessionmaker, mock_create_engine):
         """Test that get_session works as a context manager."""
         mock_engine = Mock(spec=Engine)
@@ -139,8 +135,8 @@ class TestLocalDatabaseAdapterGetSession(unittest.TestCase):
         # After context manager exits, session should be closed
         mock_session.close.assert_called_once()
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_get_session_closes_on_exception(self, mock_sessionmaker, mock_create_engine):
         """Test that session is closed even when exception occurs."""
         mock_engine = Mock(spec=Engine)
@@ -168,8 +164,8 @@ class TestLocalDatabaseAdapterGetSession(unittest.TestCase):
 class TestLocalDatabaseAdapterExecuteQuery(unittest.TestCase):
     """Test execute_query method."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_query_without_params(self, mock_sessionmaker, mock_create_engine):
         """Test execute_query without parameters."""
         mock_engine = Mock(spec=Engine)
@@ -207,8 +203,8 @@ class TestLocalDatabaseAdapterExecuteQuery(unittest.TestCase):
         # Verify session.execute was called
         self.assertTrue(mock_session.execute.called)
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_query_with_params(self, mock_sessionmaker, mock_create_engine):
         """Test execute_query with parameters."""
         mock_engine = Mock(spec=Engine)
@@ -240,8 +236,8 @@ class TestLocalDatabaseAdapterExecuteQuery(unittest.TestCase):
         self.assertEqual(len(results), 1)  # type: ignore
         self.assertEqual(results[0], {'id': 1, 'name': 'Test'})  # type: ignore
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_query_empty_result(self, mock_sessionmaker, mock_create_engine):
         """Test execute_query with no results."""
         mock_engine = Mock(spec=Engine)
@@ -271,8 +267,8 @@ class TestLocalDatabaseAdapterExecuteQuery(unittest.TestCase):
 class TestLocalDatabaseAdapterExecuteUpdate(unittest.TestCase):
     """Test execute_update method."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_update_returns_rowcount(self, mock_sessionmaker, mock_create_engine):
         """Test execute_update returns number of affected rows."""
         mock_engine = Mock(spec=Engine)
@@ -299,8 +295,8 @@ class TestLocalDatabaseAdapterExecuteUpdate(unittest.TestCase):
         
         self.assertEqual(affected_rows, 3)
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_update_without_params(self, mock_sessionmaker, mock_create_engine):
         """Test execute_update without parameters."""
         mock_engine = Mock(spec=Engine)
@@ -325,8 +321,8 @@ class TestLocalDatabaseAdapterExecuteUpdate(unittest.TestCase):
         
         self.assertEqual(affected_rows, 1)
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_update_no_rows_affected(self, mock_sessionmaker, mock_create_engine):
         """Test execute_update when no rows are affected."""
         mock_engine = Mock(spec=Engine)
@@ -355,8 +351,8 @@ class TestLocalDatabaseAdapterExecuteUpdate(unittest.TestCase):
 class TestLocalDatabaseAdapterExecuteMany(unittest.TestCase):
     """Test execute_many method."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_many_with_multiple_params(self, mock_sessionmaker, mock_create_engine):
         """Test execute_many with multiple parameter sets."""
         mock_engine = Mock(spec=Engine)
@@ -392,8 +388,8 @@ class TestLocalDatabaseAdapterExecuteMany(unittest.TestCase):
         # Verify execute was called 3 times
         self.assertEqual(mock_session.execute.call_count, 3)
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_many_with_empty_list(self, mock_sessionmaker, mock_create_engine):
         """Test execute_many with empty parameter list."""
         mock_engine = Mock(spec=Engine)
@@ -412,8 +408,8 @@ class TestLocalDatabaseAdapterExecuteMany(unittest.TestCase):
         self.assertEqual(total_affected, 0)
         mock_session.execute.assert_not_called()
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_execute_many_accumulates_rowcount(self, mock_sessionmaker, mock_create_engine):
         """Test execute_many accumulates rowcount from all executions."""
         mock_engine = Mock(spec=Engine)
@@ -455,8 +451,8 @@ class TestLocalDatabaseAdapterExecuteMany(unittest.TestCase):
 class TestLocalDatabaseAdapterHealthCheck(unittest.TestCase):
     """Test health_check method."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_health_check_success(self, mock_sessionmaker, mock_create_engine):
         """Test health_check returns True when database is healthy."""
         mock_engine = Mock(spec=Engine)
@@ -477,8 +473,8 @@ class TestLocalDatabaseAdapterHealthCheck(unittest.TestCase):
         self.assertTrue(is_healthy)
         mock_session.execute.assert_called_once()
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_health_check_failure(self, mock_sessionmaker, mock_create_engine):
         """Test health_check returns False when database is unreachable."""
         mock_engine = Mock(spec=Engine)
@@ -503,8 +499,8 @@ class TestLocalDatabaseAdapterHealthCheck(unittest.TestCase):
 class TestLocalDatabaseAdapterClose(unittest.TestCase):
     """Test close method."""
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_close_disposes_engine(self, mock_sessionmaker, mock_create_engine):
         """Test close disposes the engine."""
         mock_engine = Mock(spec=Engine)
@@ -515,8 +511,8 @@ class TestLocalDatabaseAdapterClose(unittest.TestCase):
         
         mock_engine.dispose.assert_called_once()
     
-    @patch('database.local_adapter.create_engine')
-    @patch('database.local_adapter.sessionmaker')
+    @patch('src.database.local_adapter.create_engine')
+    @patch('src.database.local_adapter.sessionmaker')
     def test_close_with_none_engine(self, mock_sessionmaker, mock_create_engine):
         """Test close handles None engine gracefully."""
         mock_create_engine.return_value = None

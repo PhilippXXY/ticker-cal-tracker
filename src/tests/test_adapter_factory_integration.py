@@ -2,18 +2,15 @@
 
 import unittest
 from unittest.mock import patch
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from database.adaper_factory import (
+from src.database.adaper_factory import (
     DatabaseAdapterFactory,
     DatabaseEnvironment,
     parse_environment_from_args
 )
-from database.local_adapter import LocalDatabaseAdapter
-from database.gcp_adapter import GcpDatabaseAdapter
+from src.database.local_adapter import LocalDatabaseAdapter
+from src.database.gcp_adapter import GcpDatabaseAdapter
 
 
 class TestDatabaseAdapterFactoryIntegration(unittest.TestCase):

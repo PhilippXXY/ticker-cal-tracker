@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import Engine, create_engine, text, CursorResult
 from sqlalchemy.exc import SQLAlchemyError
 
-from database.adapter_base import DatabaseAdapterBaseDefinition
+from src.database.adapter_base import DatabaseAdapterBaseDefinition
 
 class LocalDatabaseAdapter(DatabaseAdapterBaseDefinition):
     '''

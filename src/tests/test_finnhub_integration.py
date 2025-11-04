@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from dotenv import load_dotenv
 
-from external.finnhub import Finnhub
-from models.stock_model import Stock
+from src.external.finnhub import Finnhub
+from src.models.stock_model import Stock
 
 # Load environment variables from .env file
 load_dotenv(Path('.env'))

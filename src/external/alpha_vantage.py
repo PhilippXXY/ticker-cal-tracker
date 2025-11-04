@@ -3,9 +3,9 @@ import json
 import logging
 import requests
 from datetime import datetime, timezone
-from external.external_base import ExternalApiBaseDefinition
-from models.stock_model import Stock
-from models.stock_event_model import StockEvent, EventType
+from .external_base import ExternalApiBaseDefinition
+from src.models.stock_model import Stock
+from src.models.stock_event_model import StockEvent, EventType
 
 logger = logging.getLogger(__name__)
 

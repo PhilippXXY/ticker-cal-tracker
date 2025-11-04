@@ -3,16 +3,13 @@
 
 import unittest
 import os
-import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 from uuid import UUID
 from sqlalchemy import text
 
-# Add parent directory to path to import from src
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from database.local_adapter import LocalDatabaseAdapter
+from src.database.local_adapter import LocalDatabaseAdapter
 
 
 # Skip integration tests if flag is set

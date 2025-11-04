@@ -98,10 +98,9 @@ Run unit tests that use mocks and don't make real API calls or require a databas
 python src/tests/run_tests.py --unit
 
 # Or directly with unittest
-cd src
-python -m unittest tests.test_alpha_vantage -v
-python -m unittest tests.test_finnhub -v
-python -m unittest tests.test_local_adapter -v
+python -m unittest src.tests.test_alpha_vantage -v
+python -m unittest src.tests.test_finnhub -v
+python -m unittest src.tests.test_local_adapter -v
 ```
 
 ### Integration Tests
@@ -155,13 +154,12 @@ python src/tests/run_tests.py --integration
 
 You can also run tests directly:
 ```bash
-cd src
 # API integration tests only
-python -m unittest tests.test_alpha_vantage_integration -v
-python -m unittest tests.test_finnhub_integration -v
+python -m unittest src.tests.test_alpha_vantage_integration -v
+python -m unittest src.tests.test_finnhub_integration -v
 
 # Database integration tests only
-python -m unittest tests.test_local_adapter_integration -v
+python -m unittest src.tests.test_local_adapter_integration -v
 ```
 
 ### Run All Tests

@@ -4,16 +4,16 @@ import unittest
 from unittest.mock import patch, Mock
 from datetime import datetime, timezone
 
-from external.external_api_facade import ExternalApiFacade
-from models.stock_model import Stock
-from models.stock_event_model import StockEvent, EventType
+from src.external.external_api_facade import ExternalApiFacade
+from src.models.stock_model import Stock
+from src.models.stock_event_model import StockEvent, EventType
 
 
 class TestExternalApiFacadeInit(unittest.TestCase):
     '''Test ExternalApiFacade initialization.'''
     
-    @patch('external.external_api_facade.AlphaVantage')
-    @patch('external.external_api_facade.Finnhub')
+    @patch('src.external.external_api_facade.AlphaVantage')
+    @patch('src.external.external_api_facade.Finnhub')
     def test_init_success(self, mock_finnhub_class, mock_alpha_vantage_class):
         '''Test successful initialization of facade.'''
         mock_finnhub = Mock()
@@ -28,8 +28,8 @@ class TestExternalApiFacadeInit(unittest.TestCase):
         mock_finnhub_class.assert_called_once()
         mock_alpha_vantage_class.assert_called_once()
     
-    @patch('external.external_api_facade.AlphaVantage')
-    @patch('external.external_api_facade.Finnhub')
+    @patch('src.external.external_api_facade.AlphaVantage')
+    @patch('src.external.external_api_facade.Finnhub')
     def test_init_raises_error_no_api_key(self, mock_finnhub_class, mock_alpha_vantage_class):
         '''Test initialization fails when API key is missing.'''
         mock_finnhub_class.side_effect = ValueError("API key not found")
@@ -43,8 +43,8 @@ class TestGetStockInfoFromName(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures with mocked API clients.'''
-        self.patcher_av = patch('external.external_api_facade.AlphaVantage')
-        self.patcher_fh = patch('external.external_api_facade.Finnhub')
+        self.patcher_av = patch('src.external.external_api_facade.AlphaVantage')
+        self.patcher_fh = patch('src.external.external_api_facade.Finnhub')
         
         self.mock_av_class = self.patcher_av.start()
         self.mock_fh_class = self.patcher_fh.start()
@@ -136,8 +136,8 @@ class TestGetStockInfoFromSymbol(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures with mocked API clients.'''
-        self.patcher_av = patch('external.external_api_facade.AlphaVantage')
-        self.patcher_fh = patch('external.external_api_facade.Finnhub')
+        self.patcher_av = patch('src.external.external_api_facade.AlphaVantage')
+        self.patcher_fh = patch('src.external.external_api_facade.Finnhub')
         
         self.mock_av_class = self.patcher_av.start()
         self.mock_fh_class = self.patcher_fh.start()
@@ -235,8 +235,8 @@ class TestGetStockEventDatesFromStock(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures with mocked API clients.'''
-        self.patcher_av = patch('external.external_api_facade.AlphaVantage')
-        self.patcher_fh = patch('external.external_api_facade.Finnhub')
+        self.patcher_av = patch('src.external.external_api_facade.AlphaVantage')
+        self.patcher_fh = patch('src.external.external_api_facade.Finnhub')
         
         self.mock_av_class = self.patcher_av.start()
         self.mock_fh_class = self.patcher_fh.start()
@@ -442,8 +442,8 @@ class TestFacadeIntegration(unittest.TestCase):
     
     def setUp(self):
         '''Set up test fixtures with mocked API clients.'''
-        self.patcher_av = patch('external.external_api_facade.AlphaVantage')
-        self.patcher_fh = patch('external.external_api_facade.Finnhub')
+        self.patcher_av = patch('src.external.external_api_facade.AlphaVantage')
+        self.patcher_fh = patch('src.external.external_api_facade.Finnhub')
         
         self.mock_av_class = self.patcher_av.start()
         self.mock_fh_class = self.patcher_fh.start()

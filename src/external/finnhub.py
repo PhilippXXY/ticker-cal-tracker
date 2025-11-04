@@ -3,8 +3,8 @@ import logging
 from datetime import datetime, timezone
 from finnhub.exceptions import FinnhubAPIException
 
-from external.external_base import ExternalApiBaseDefinition
-from models.stock_model import Stock
+from .external_base import ExternalApiBaseDefinition
+from src.models.stock_model import Stock
 
 logger = logging.getLogger(__name__)
 

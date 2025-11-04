@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from typing import Any, Dict, Generator, Iterable, List, Mapping, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import Engine
-from database.adapter_base import DatabaseAdapterBaseDefinition
+from src.database.adapter_base import DatabaseAdapterBaseDefinition
 
 class GcpDatabaseAdapter(DatabaseAdapterBaseDefinition):
     '''

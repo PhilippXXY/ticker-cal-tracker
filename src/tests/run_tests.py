@@ -38,11 +38,11 @@ def run_unit_tests(verbose=True):
     print("These tests use mocks and make NO real API calls.\n")
     
     tests = [
-        'tests.test_alpha_vantage',
-        'tests.test_finnhub',
-        'tests.test_external_api_facade',
-        'tests.test_local_adapter',
-        'tests.test_adapter_factory'
+        'src.tests.test_alpha_vantage',
+        'src.tests.test_finnhub',
+        'src.tests.test_external_api_facade',
+        'src.tests.test_local_adapter',
+        'src.tests.test_adapter_factory'
     ]
     
     # Skip integration tests
@@ -55,7 +55,7 @@ def run_unit_tests(verbose=True):
         if verbose:
             cmd.append('-v')
         
-        result = subprocess.run(cmd, cwd='src', capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"\n✗ {test} failed!")
             print("stdout:\n", result.stdout)
@@ -106,9 +106,9 @@ def run_api_integration_tests(verbose=True):
     
     tests = []
     if has_alpha_vantage:
-        tests.append('tests.test_alpha_vantage_integration')
+        tests.append('src.tests.test_alpha_vantage_integration')
     if has_finnhub:
-        tests.append('tests.test_finnhub_integration')
+        tests.append('src.tests.test_finnhub_integration')
     
     success = True
     for test in tests:
@@ -117,7 +117,7 @@ def run_api_integration_tests(verbose=True):
         if verbose:
             cmd.append('-v')
         
-        result = subprocess.run(cmd, cwd='src', capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"\n⚠️  {test} had failures (may be due to rate limits)")
             print("stdout:\n", result.stdout)
@@ -164,8 +164,8 @@ def run_db_integration_tests(verbose=True):
     os.environ['SKIP_INTEGRATION_TESTS'] = '1'
     
     tests = [
-        'tests.test_local_adapter_integration',
-        'tests.test_adapter_factory_integration'
+        'src.tests.test_local_adapter_integration',
+        'src.tests.test_adapter_factory_integration'
     ]
     
     success = True
@@ -175,7 +175,7 @@ def run_db_integration_tests(verbose=True):
         if verbose:
             cmd.append('-v')
         
-        result = subprocess.run(cmd, cwd='src', capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"\n⚠️  {test} had failures")
             print("stdout:\n", result.stdout)

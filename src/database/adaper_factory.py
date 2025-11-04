@@ -3,9 +3,9 @@ import logging
 from enum import Enum
 from typing import Optional
 
-from database.adapter_base import DatabaseAdapterBaseDefinition
-from database.local_adapter import LocalDatabaseAdapter
-from database.gcp_adapter import GcpDatabaseAdapter
+from src.database.adapter_base import DatabaseAdapterBaseDefinition
+from src.database.local_adapter import LocalDatabaseAdapter
+from src.database.gcp_adapter import GcpDatabaseAdapter
 
 
 class DatabaseEnvironment(Enum):
@@ -24,7 +24,7 @@ class DatabaseAdapterFactory:
         The database instance can be used by calling the appropriate class method.
         On this object, all other performing methods are defined.
         ```
-        from database.adaper_factory import DatabaseAdapterFactory
+        from src.database.adaper_factory import DatabaseAdapterFactory
         db_adapter = DatabaseAdapterFactory.get_instance()
         ```
     '''

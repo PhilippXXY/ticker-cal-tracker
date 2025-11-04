@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from models.stock_model import Stock
+from src.models.stock_model import Stock
 
 class EventType(str, Enum):
     EARNINGS_ANNOUNCEMENT = "EARNINGS_ANNOUNCEMENT"
