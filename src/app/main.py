@@ -9,7 +9,7 @@ from src.api.routes.calendar_rest import calendar_bp
 from src.api.routes.stocks_rest import stocks_bp
 from src.api.routes.user_rest import user_bp
 from src.api.routes.watchlists_rest import watchlists_bp
-from src.database.adaper_factory import DatabaseAdapterFactory, parse_environment_from_args
+from src.database.adapter_factory import DatabaseAdapterFactory, parse_environment_from_args
 
 def create_app():
     """

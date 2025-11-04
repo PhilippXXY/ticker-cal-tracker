@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 
 
-from src.database.adaper_factory import (
+from src.database.adapter_factory import (
     DatabaseAdapterFactory,
     DatabaseEnvironment,
     parse_environment_from_args
@@ -226,7 +226,7 @@ class TestDatabaseAdapterFactoryUsagePatterns(unittest.TestCase):
     def test_typical_usage_pattern(self):
         """Test the typical usage pattern from the docstring."""
         # This is the documented usage pattern:
-        # from database.adaper_factory import DatabaseAdapterFactory
+        # from database.adapter_factory import DatabaseAdapterFactory
         # db_adapter = DatabaseAdapterFactory.get_instance()
         
         # But first need to initialize

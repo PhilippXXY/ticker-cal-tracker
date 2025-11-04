@@ -24,7 +24,7 @@ class DatabaseAdapterFactory:
         The database instance can be used by calling the appropriate class method.
         On this object, all other performing methods are defined.
         ```
-        from src.database.adaper_factory import DatabaseAdapterFactory
+        from src.database.adapter_factory import DatabaseAdapterFactory
         db_adapter = DatabaseAdapterFactory.get_instance()
         ```
     '''

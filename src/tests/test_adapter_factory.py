@@ -2,7 +2,7 @@
 
 import unittest
 from unittest.mock import Mock, patch, MagicMock
-from src.database.adaper_factory import (
+from src.database.adapter_factory import (
     DatabaseAdapterFactory,
     DatabaseEnvironment,
     parse_environment_from_args
@@ -103,7 +103,7 @@ class TestDatabaseAdapterFactoryGetInstance(unittest.TestCase):
         self.assertIn("not initialized", str(context.exception))
         self.assertIn("initialize()", str(context.exception))
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
     def test_get_instance_creates_adapter_first_time(self, mock_local_adapter):
         """Test that get_instance creates adapter on first call."""
         mock_adapter = Mock(spec=LocalDatabaseAdapter)
@@ -118,7 +118,7 @@ class TestDatabaseAdapterFactoryGetInstance(unittest.TestCase):
         self.assertEqual(DatabaseAdapterFactory._instance, mock_adapter)
         mock_local_adapter.assert_called_once()
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
     def test_get_instance_returns_singleton(self, mock_local_adapter):
         """Test that get_instance returns the same instance (singleton pattern)."""
         mock_adapter = Mock(spec=LocalDatabaseAdapter)
@@ -150,7 +150,7 @@ class TestDatabaseAdapterFactoryCreateAdapter(unittest.TestCase):
         """Clean up after each test."""
         DatabaseAdapterFactory.reset()
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
     def test_create_adapter_development_environment(self, mock_local_adapter):
         """Test creating adapter for development environment."""
         mock_adapter = Mock(spec=LocalDatabaseAdapter)
@@ -163,7 +163,7 @@ class TestDatabaseAdapterFactoryCreateAdapter(unittest.TestCase):
         self.assertEqual(adapter, mock_adapter)
         mock_local_adapter.assert_called_once()
     
-    @patch('src.database.adaper_factory.GcpDatabaseAdapter')
+    @patch('src.database.adapter_factory.GcpDatabaseAdapter')
     def test_create_adapter_deployment_environment(self, mock_gcp_adapter):
         """Test creating adapter for deployment environment."""
         mock_adapter = Mock(spec=GcpDatabaseAdapter)
@@ -199,7 +199,7 @@ class TestDatabaseAdapterFactoryCreateLocalAdapter(unittest.TestCase):
         """Clean up after each test."""
         DatabaseAdapterFactory.reset()
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
     def test_create_local_adapter_with_correct_parameters(self, mock_local_adapter):
         """Test that local adapter is created with correct parameters."""
         mock_adapter = Mock(spec=LocalDatabaseAdapter)
@@ -232,7 +232,7 @@ class TestDatabaseAdapterFactoryCreateGcpAdapter(unittest.TestCase):
         """Clean up after each test."""
         DatabaseAdapterFactory.reset()
     
-    @patch('src.database.adaper_factory.GcpDatabaseAdapter')
+    @patch('src.database.adapter_factory.GcpDatabaseAdapter')
     def test_create_gcp_adapter(self, mock_gcp_adapter):
         """Test that GCP adapter is created."""
         mock_adapter = Mock(spec=GcpDatabaseAdapter)
@@ -267,7 +267,7 @@ class TestDatabaseAdapterFactoryReset(unittest.TestCase):
         self.assertIsNone(DatabaseAdapterFactory._instance)
         self.assertIsNone(DatabaseAdapterFactory._environment)
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
     def test_reset_closes_existing_adapter(self, mock_local_adapter):
         """Test that reset calls close() on existing adapter."""
         mock_adapter = Mock(spec=LocalDatabaseAdapter)
@@ -283,7 +283,7 @@ class TestDatabaseAdapterFactoryReset(unittest.TestCase):
         mock_adapter.close.assert_called_once()
         self.assertIsNone(DatabaseAdapterFactory._instance)
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
     def test_reset_handles_close_exception_gracefully(self, mock_local_adapter):
         """Test that reset handles exceptions from close() gracefully."""
         mock_adapter = Mock(spec=LocalDatabaseAdapter)
@@ -345,7 +345,7 @@ class TestDatabaseAdapterFactoryEndToEnd(unittest.TestCase):
         """Clean up after each test."""
         DatabaseAdapterFactory.reset()
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
     def test_full_workflow_development(self, mock_local_adapter):
         """Test complete workflow for development environment."""
         mock_adapter = Mock(spec=LocalDatabaseAdapter)
@@ -369,7 +369,7 @@ class TestDatabaseAdapterFactoryEndToEnd(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             DatabaseAdapterFactory.get_instance()
     
-    @patch('src.database.adaper_factory.GcpDatabaseAdapter')
+    @patch('src.database.adapter_factory.GcpDatabaseAdapter')
     def test_full_workflow_deployment(self, mock_gcp_adapter):
         """Test complete workflow for deployment environment."""
         mock_adapter = Mock(spec=GcpDatabaseAdapter)
@@ -388,8 +388,8 @@ class TestDatabaseAdapterFactoryEndToEnd(unittest.TestCase):
         DatabaseAdapterFactory.reset()
         mock_adapter.close.assert_called_once()
     
-    @patch('src.database.adaper_factory.LocalDatabaseAdapter')
-    @patch('src.database.adaper_factory.GcpDatabaseAdapter')
+    @patch('src.database.adapter_factory.LocalDatabaseAdapter')
+    @patch('src.database.adapter_factory.GcpDatabaseAdapter')
     def test_switching_environments(self, mock_gcp_adapter, mock_local_adapter):
         """Test switching between environments."""
         mock_local = Mock(spec=LocalDatabaseAdapter)
