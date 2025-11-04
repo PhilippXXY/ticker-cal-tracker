@@ -41,7 +41,8 @@ def run_unit_tests(verbose=True):
         'tests.test_alpha_vantage',
         'tests.test_finnhub',
         'tests.test_external_api_facade',
-        'tests.test_local_adapter'
+        'tests.test_local_adapter',
+        'tests.test_adapter_factory'
     ]
     
     # Skip integration tests
@@ -162,7 +163,10 @@ def run_db_integration_tests(verbose=True):
     # Keep API tests skipped
     os.environ['SKIP_INTEGRATION_TESTS'] = '1'
     
-    tests = ['tests.test_local_adapter_integration']
+    tests = [
+        'tests.test_local_adapter_integration',
+        'tests.test_adapter_factory_integration'
+    ]
     
     success = True
     for test in tests:
