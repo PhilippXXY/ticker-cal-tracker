@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from flask import Flask
 from flask_smorest import Api
@@ -8,6 +9,7 @@ from src.api.routes.calendar_rest import calendar_bp
 from src.api.routes.stocks_rest import stocks_bp
 from src.api.routes.user_rest import user_bp
 from src.api.routes.watchlists_rest import watchlists_bp
+from src.database.adaper_factory import DatabaseAdapterFactory, parse_environment_from_args
 
 def create_app():
     """
@@ -16,6 +18,21 @@ def create_app():
     Returns:
         Flask: A configured Flask application instance ready to be run.
     """
+    # Initialize database adapter based on environment
+    db_environment = parse_environment_from_args()
+    DatabaseAdapterFactory.initialize(db_environment)
+    
+    # Verify database connection
+    try:
+        db_adapter = DatabaseAdapterFactory.get_instance()
+        if not db_adapter.health_check():
+            logging.error("Database health check failed!")
+            sys.exit(1)
+        logging.info(f"Database connection established successfully in {db_environment.value} mode")
+    except Exception as e:
+        logging.error(f"Failed to initialize database: {e}")
+        sys.exit(1)
+    
     # Initialize Flask
     app = Flask(__name__)
     
@@ -42,6 +59,17 @@ def create_app():
     # Set up logging
     if not app.debug:
         logging.basicConfig(level=logging.INFO)
+    
+    # Register cleanup handler
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        """Clean up database connections on app shutdown"""
+        try:
+            db_adapter = DatabaseAdapterFactory.get_instance()
+            db_adapter.close()
+            logging.info("Database connections closed")
+        except Exception as e:
+            logging.warning(f"Error during database cleanup: {e}")
         
     return app
 
