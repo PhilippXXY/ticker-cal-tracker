@@ -45,13 +45,19 @@ class Watchlist {
   +name: string
   +calendar_url: string
   +created_at: datetime
+}
+
+class WatchlistSettings {
+  +watchlist_id: UUID
   +include_earnings_announcement: bool
   +include_dividend_ex: bool
   +include_dividend_declaration: bool
-  +include_dividend_dividend_record: bool
+  +include_dividend_record: bool
   +include_dividend_payment: bool
   +include_stock_split: bool
   +reminder_before: datetime
+  +created_at: datetime
+  +updated_at: datetime
 }
 
 class UserPreference {
@@ -62,6 +68,7 @@ class UserPreference {
 }
 
 Watchlist "1" -- "0..*" Follow
+Watchlist "1" -- "1" WatchlistSettings
 Stock "1" -- "0..*" Follow
 Stock "1" -- "0..*" StockEvent
 User "1" -- "1..*" Watchlist

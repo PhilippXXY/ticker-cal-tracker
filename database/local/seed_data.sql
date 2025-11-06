@@ -58,30 +58,61 @@ INSERT INTO stock_events (stock_ticker, type, event_date, source) VALUES
     ('WMT', 'DIVIDEND_EX', '2025-11-08', 'AlphaVantage');
 
 -- Insert sample watchlists
-INSERT INTO watchlists (user_id, name, calendar_url, reminder_before) VALUES
+INSERT INTO watchlists (user_id, name, calendar_url) VALUES
     (
         (SELECT id FROM users WHERE email = 'alice@example.com'),
         'Tech Stocks',
-        'https://calendar.example.com/alice/tech-stocks-' || uuid_generate_v4(),
-        '2 days'::INTERVAL
+        'https://calendar.example.com/alice/tech-stocks-' || uuid_generate_v4()
     ),
     (
         (SELECT id FROM users WHERE email = 'alice@example.com'),
         'Dividend Payers',
-        'https://calendar.example.com/alice/dividend-payers-' || uuid_generate_v4(),
-        '1 day'::INTERVAL
+        'https://calendar.example.com/alice/dividend-payers-' || uuid_generate_v4()
     ),
     (
         (SELECT id FROM users WHERE email = 'bob@example.com'),
         'Growth Portfolio',
-        'https://calendar.example.com/bob/growth-portfolio-' || uuid_generate_v4(),
-        '12 hours'::INTERVAL
+        'https://calendar.example.com/bob/growth-portfolio-' || uuid_generate_v4()
     ),
     (
         (SELECT id FROM users WHERE email = 'charlie@example.com'),
         'All Stocks',
-        'https://calendar.example.com/charlie/all-stocks-' || uuid_generate_v4(),
-        '1 day'::INTERVAL
+        'https://calendar.example.com/charlie/all-stocks-' || uuid_generate_v4()
+    );
+
+-- Insert watchlist settings
+INSERT INTO watchlist_settings (watchlist_id, reminder_before, include_dividend_ex, include_dividend_declaration, include_dividend_record, include_dividend_payment) VALUES
+    (
+        (SELECT id FROM watchlists WHERE name = 'Tech Stocks' AND user_id = (SELECT id FROM users WHERE email = 'alice@example.com')),
+        '2 days'::INTERVAL,
+        TRUE,
+        TRUE,
+        TRUE,
+        TRUE
+    ),
+    (
+        (SELECT id FROM watchlists WHERE name = 'Dividend Payers' AND user_id = (SELECT id FROM users WHERE email = 'alice@example.com')),
+        '1 day'::INTERVAL,
+        TRUE,
+        TRUE,
+        TRUE,
+        TRUE
+    ),
+    (
+        (SELECT id FROM watchlists WHERE name = 'Growth Portfolio' AND user_id = (SELECT id FROM users WHERE email = 'bob@example.com')),
+        '12 hours'::INTERVAL,
+        FALSE,
+        FALSE,
+        FALSE,
+        FALSE
+    ),
+    (
+        (SELECT id FROM watchlists WHERE name = 'All Stocks' AND user_id = (SELECT id FROM users WHERE email = 'charlie@example.com')),
+        '1 day'::INTERVAL,
+        TRUE,
+        TRUE,
+        TRUE,
+        TRUE
     );
 
 -- Insert follows (stocks in watchlists)
