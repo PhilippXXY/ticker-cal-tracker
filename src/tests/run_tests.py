@@ -42,7 +42,9 @@ def run_unit_tests(verbose=True):
         'src.tests.test_finnhub',
         'src.tests.test_external_api_facade',
         'src.tests.test_local_adapter',
-        'src.tests.test_adapter_factory'
+        'src.tests.test_adapter_factory',
+        'src.tests.test_watchlists_service',
+        'src.tests.test_watchlists_rest'
     ]
     
     # Skip integration tests
@@ -165,7 +167,8 @@ def run_db_integration_tests(verbose=True):
     
     tests = [
         'src.tests.test_local_adapter_integration',
-        'src.tests.test_adapter_factory_integration'
+        'src.tests.test_adapter_factory_integration',
+        'src.tests.test_watchlists_service_integration'
     ]
     
     success = True
