@@ -167,10 +167,10 @@ class TestWatchlistServiceIntegration(unittest.TestCase):
         )
         
         self.assertIsNotNone(retrieved)
-        self.assertEqual(retrieved['id'], watchlist_id)
-        self.assertEqual(retrieved['name'], 'Integration Test Watchlist')
-        self.assertTrue(retrieved['include_earnings_announcement'])
-        self.assertFalse(retrieved['include_dividend_ex'])
+        self.assertEqual(retrieved['id'], watchlist_id) # pyright: ignore[reportOptionalSubscript]
+        self.assertEqual(retrieved['name'], 'Integration Test Watchlist') # pyright: ignore[reportOptionalSubscript]
+        self.assertTrue(retrieved['include_earnings_announcement']) # pyright: ignore[reportOptionalSubscript]
+        self.assertFalse(retrieved['include_dividend_ex']) # pyright: ignore[reportOptionalSubscript]
     
     def test_get_all_watchlists_for_user(self):
         '''Test retrieving all watchlists for a user.'''
@@ -225,7 +225,7 @@ class TestWatchlistServiceIntegration(unittest.TestCase):
             user_id=self.test_user_id,
             watchlist_id=watchlist_id
         )
-        self.assertEqual(retrieved['name'], 'Updated Name')
+        self.assertEqual(retrieved['name'], 'Updated Name') # pyright: ignore[reportOptionalSubscript]
     
     def test_update_watchlist_settings(self):
         '''Test updating watchlist event settings.'''
@@ -258,8 +258,8 @@ class TestWatchlistServiceIntegration(unittest.TestCase):
             user_id=self.test_user_id,
             watchlist_id=watchlist_id
         )
-        self.assertFalse(retrieved['include_earnings_announcement'])
-        self.assertFalse(retrieved['include_dividend_ex'])
+        self.assertFalse(retrieved['include_earnings_announcement']) # pyright: ignore[reportOptionalSubscript]
+        self.assertFalse(retrieved['include_dividend_ex']) # pyright: ignore[reportOptionalSubscript]
     
     def test_add_and_remove_stock_from_watchlist(self):
         '''Test adding and removing a stock from watchlist.'''
