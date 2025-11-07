@@ -78,7 +78,7 @@ class WatchlistCollection(MethodView):
         user_id = auth_utils.get_current_user_id()
         try:
             return get_watchlist_service().get_all_watchlists_for_user(user_id=user_id)
-        except Exception as exc:  # pragma: no cover - propagated to API client
+        except Exception as exc:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=f'Failed to list watchlists: {str(exc)}')
 
     @watchlists_bp.doc(
@@ -139,7 +139,7 @@ class WatchlistDetailResource(MethodView):
         user_id = auth_utils.get_current_user_id()
         try:
             watchlist = get_watchlist_service().get_watchlist_by_id(user_id=user_id, watchlist_id=watchlist_id)
-        except Exception as exc:  # pragma: no cover - propagated to API client
+        except Exception as exc:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(exc))
 
         if not watchlist:
@@ -195,7 +195,7 @@ class WatchlistDetailResource(MethodView):
 
         try:
             return get_watchlist_service().get_watchlist_by_id(user_id=user_id, watchlist_id=watchlist_id)
-        except Exception as exc:  # pragma: no cover - propagated to API client
+        except Exception as exc:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(exc))
 
     @watchlists_bp.doc(
@@ -215,7 +215,7 @@ class WatchlistDetailResource(MethodView):
         user_id = auth_utils.get_current_user_id()
         try:
             deleted = get_watchlist_service().delete_watchlist(user_id=user_id, watchlist_id=watchlist_id)
-        except Exception as exc:  # pragma: no cover - propagated to API client
+        except Exception as exc:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(exc))
 
         if not deleted:
