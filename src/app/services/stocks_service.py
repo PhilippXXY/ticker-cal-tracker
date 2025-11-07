@@ -6,10 +6,16 @@ from src.models.stock_model import Stock
 from src.external.external_api_facade import ExternalApiFacade
 
 class StocksService:
+    '''
+    Service for managing stock information and caching.
+    
+    Provides stock data retrieval with a cache-first strategy, fetching from
+    external APIs when needed and storing results in the local database.
+    '''
     
     def __init__(self):
         '''
-        Initialise the service with database.
+        Initialise the StocksService with database and external API connections.
         '''
         self.db = DatabaseAdapterFactory.get_instance()
         self.external_api = ExternalApiFacade()

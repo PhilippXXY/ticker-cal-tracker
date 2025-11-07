@@ -5,13 +5,33 @@ from src.models.user_model import User
 from src.database.adapter_factory import DatabaseAdapterFactory
 
 class UserService:
+    '''
+    Service for managing user information and preferences.
+    
+    Handles user data retrieval and updates.
+    '''
     
     def __init__(self):
+        '''
+        Initialise the UserService with database connection.
+        '''
         self.db = DatabaseAdapterFactory.get_instance()
         
         
     def get_user(self, *, user_id: UUID) -> User:
+        '''
+        Retrieve user information by user ID.
         
+        Args:
+            user_id: The UUID of the user to retrieve.
+            
+        Returns:
+            User object containing user details.
+            
+        Raises:
+            ValueError: If user with the given ID is not found.
+            Exception: If database query fails.
+        '''
         query = """
             SELECT
                 u.email,
@@ -47,9 +67,21 @@ class UserService:
         self,
         *,
         user_id: UUID,
-        email: Optional[str] = None,
-    ) -> bool:
+        email: Optional[str] = None,) -> bool:
+        '''
+        Update user information.
         
+        Args:
+            user_id: The UUID of the user to update.
+            email: Optional new email address for the user.
+            
+        Returns:
+            True if user was updated, False if no changes were made.
+            
+        Raises:
+            TypeError: If user_id is not a UUID instance.
+            Exception: If database update fails.
+        '''
         if not isinstance(user_id, UUID):
             raise TypeError("user_id must be a UUID instance")
         

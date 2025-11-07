@@ -63,7 +63,12 @@ def create_app():
     # Register cleanup handler
     @app.teardown_appcontext
     def shutdown_session(exception=None):
-        """Clean up database connections on app shutdown"""
+        '''
+        Clean up database connections on app shutdown.
+        
+        Args:
+            exception: Optional exception that caused the teardown.
+        '''
         try:
             db_adapter = DatabaseAdapterFactory.get_instance()
             db_adapter.close()

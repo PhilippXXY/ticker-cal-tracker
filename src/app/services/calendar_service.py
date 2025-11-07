@@ -7,8 +7,17 @@ from src.models.stock_model import Stock
 import src.app.utils.calendar_utils as calendar_utils
 
 class CalendarService:
+    '''
+    Service for managing calendar operations and iCalendar file generation.
+    
+    Handles fetching stock events for watchlists and generating iCalendar (.ics) files,
+    as well as managing calendar tokens for secure access.
+    '''
     
     def __init__(self) -> None:
+        '''
+        Initialize the CalendarService with database connection.
+        '''
         self.db = DatabaseAdapterFactory.get_instance()
     
     def get_calendar(self, *, token: str) -> str:
