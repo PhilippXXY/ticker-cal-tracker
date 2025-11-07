@@ -1,5 +1,5 @@
-@startuml sequence_diagram_rotate_watchlist_calendar_url
-title Rotate Watchlist Calendar URL - Sequence Diagram
+@startuml sequence_diagram_rotate_watchlist_calendar_token
+title Rotate Watchlist Calendar Token - Sequence Diagram
 
 actor User
 participant "Application" as APP
@@ -15,8 +15,8 @@ APP -> DB: SELECT * FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
 alt watchlist not found
   APP --> User: 404 Not Found
 else watchlist found
-  == Generate New URL ==
-  APP -> DB: UPDATE watchlist SET url = gen_token() WHERE id=:watchlist_id\nRETURNING url
-  APP --> User: 200 OK { url }
+  == Generate New Token ==
+  APP -> DB: UPDATE watchlist SET calendar_token = gen_token() WHERE id=:watchlist_id\nRETURNING calendar_token
+  APP --> User: 200 OK { calendar_token }
 end
 @enduml

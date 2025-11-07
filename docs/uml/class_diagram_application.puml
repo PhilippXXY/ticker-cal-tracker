@@ -43,7 +43,7 @@ class Watchlist {
   +id: UUID
   +user_id: UUID
   +name: string
-  +calendar_url: string
+  +calendar_token: string
   +created_at: datetime
 }
 

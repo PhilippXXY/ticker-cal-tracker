@@ -45,10 +45,10 @@ class TestCreateWatchlist(unittest.TestCase):
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
     
-    @patch('src.app.utils.calendar_utils.generate_calendar_url')
-    def test_create_watchlist_success(self, mock_gen_url):
+    @patch('src.app.utils.calendar_utils.generate_calendar_token')
+    def test_create_watchlist_success(self, mock_gen_token):
         '''Test successful watchlist creation.'''
-        mock_gen_url.return_value = 'https://example.com/cal/abc123'
+        mock_gen_token.return_value = 'abc123_secure_token'
         
         # Mock INSERT returning watchlist_id
         self.mock_db.execute_query.return_value = [{'id': self.watchlist_id}]
@@ -58,7 +58,7 @@ class TestCreateWatchlist(unittest.TestCase):
         expected_watchlist = {
             'id': self.watchlist_id,
             'name': 'Tech Stocks',
-            'calendar_url': 'https://example.com/cal/abc123',
+            'calendar_token': 'abc123securetoken',
             'created_at': datetime.now(timezone.utc),
             'include_earnings_announcement': True,
             'include_dividend_ex': True,
@@ -126,10 +126,10 @@ class TestCreateWatchlist(unittest.TestCase):
         
         self.assertIn('settings are required', str(context.exception))
     
-    @patch('src.app.utils.calendar_utils.generate_calendar_url')
-    def test_create_watchlist_db_error(self, mock_gen_url):
+    @patch('src.app.utils.calendar_utils.generate_calendar_token')
+    def test_create_watchlist_db_error(self, mock_gen_token):
         '''Test creation handles database errors.'''
-        mock_gen_url.return_value = 'https://example.com/cal/abc123'
+        mock_gen_token.return_value = 'abc123_secure_token'
         self.mock_db.execute_query.side_effect = Exception('Database error')
         
         watchlist_settings = {EventType.EARNINGS_ANNOUNCEMENT: True}
@@ -163,7 +163,7 @@ class TestGetAllWatchlistsForUser(unittest.TestCase):
             {
                 'id': uuid4(),
                 'name': 'Tech Stocks',
-                'calendar_url': 'https://example.com/cal1',
+                'calendar_token': 'token1',
                 'created_at': datetime.now(timezone.utc),
                 'include_earnings_announcement': True,
                 'include_dividend_ex': True,
@@ -171,7 +171,7 @@ class TestGetAllWatchlistsForUser(unittest.TestCase):
             {
                 'id': uuid4(),
                 'name': 'Energy Stocks',
-                'calendar_url': 'https://example.com/cal2',
+                'calendar_token': 'token2',
                 'created_at': datetime.now(timezone.utc),
                 'include_earnings_announcement': False,
                 'include_dividend_ex': True,
@@ -231,7 +231,7 @@ class TestGetWatchlistById(unittest.TestCase):
         mock_result = {
             'id': self.watchlist_id,
             'name': 'Tech Stocks',
-            'calendar_url': 'https://example.com/cal',
+            'calendar_token': 'token123',
             'created_at': datetime.now(timezone.utc),
             'include_earnings_announcement': True,
         }

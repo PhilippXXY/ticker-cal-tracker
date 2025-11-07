@@ -53,27 +53,26 @@ INSERT INTO stock_events (stock_ticker, type, event_date, source) VALUES
     ('WMT', 'EARNINGS_ANNOUNCEMENT', '2025-11-16', 'AlphaVantage'),
     ('WMT', 'DIVIDEND_EX', '2025-11-08', 'AlphaVantage');
 
--- Insert sample watchlists
-INSERT INTO watchlists (user_id, name, calendar_url) VALUES
+INSERT INTO watchlists (user_id, name, calendar_token) VALUES
     (
         (SELECT id FROM users WHERE email = 'alice@example.com'),
         'Tech Stocks',
-        'https://calendar.example.com/alice/tech-stocks-' || uuid_generate_v4()
+        'tech-stocks-' || md5(random()::text)
     ),
     (
         (SELECT id FROM users WHERE email = 'alice@example.com'),
         'Dividend Payers',
-        'https://calendar.example.com/alice/dividend-payers-' || uuid_generate_v4()
+        'dividend-payers-' || md5(random()::text)
     ),
     (
         (SELECT id FROM users WHERE email = 'bob@example.com'),
         'Growth Portfolio',
-        'https://calendar.example.com/bob/growth-portfolio-' || uuid_generate_v4()
+        'growth-portfolio-' || md5(random()::text)
     ),
     (
         (SELECT id FROM users WHERE email = 'charlie@example.com'),
         'All Stocks',
-        'https://calendar.example.com/charlie/all-stocks-' || uuid_generate_v4()
+        'all-stocks-' || md5(random()::text)
     );
 
 -- Insert watchlist settings

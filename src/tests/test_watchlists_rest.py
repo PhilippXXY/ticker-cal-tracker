@@ -122,7 +122,7 @@ class TestWatchlistCollectionGet(unittest.TestCase):
             {
                 'id': str(uuid4()),
                 'name': 'Tech Stocks',
-                'calendar_url': 'https://example.com/cal1',
+                'calendar_token': 'token1',
                 'created_at': datetime.now(timezone.utc),
                 'include_earnings_announcement': True,
             },
@@ -183,7 +183,7 @@ class TestWatchlistCollectionPost(unittest.TestCase):
         mock_service.create_watchlist.return_value = {
             'id': str(self.watchlist_id),
             'name': 'Tech Stocks',
-            'calendar_url': 'https://example.com/cal',
+            'calendar_token': 'token123',
             'created_at': datetime.now(timezone.utc),
             'include_earnings_announcement': True,
         }
@@ -246,7 +246,7 @@ class TestWatchlistDetailGet(unittest.TestCase):
         mock_service.get_watchlist_by_id.return_value = {
             'id': str(self.watchlist_id),
             'name': 'Tech Stocks',
-            'calendar_url': 'https://example.com/cal',
+            'calendar_token': 'token123',
             'created_at': datetime.now(timezone.utc),
         }
         mock_get_service.return_value = mock_service
@@ -301,7 +301,7 @@ class TestWatchlistDetailPut(unittest.TestCase):
         mock_service.get_watchlist_by_id.return_value = {
             'id': str(self.watchlist_id),
             'name': 'Updated Name',
-            'calendar_url': 'https://example.com/cal',
+            'calendar_token': 'token123',
             'created_at': datetime.now(timezone.utc),
         }
         mock_get_service.return_value = mock_service
@@ -324,7 +324,7 @@ class TestWatchlistDetailPut(unittest.TestCase):
         mock_service.get_watchlist_by_id.return_value = {
             'id': str(self.watchlist_id),
             'name': 'Tech Stocks',
-            'calendar_url': 'https://example.com/cal',
+            'calendar_token': 'token123',
             'created_at': datetime.now(timezone.utc),
             'include_earnings_announcement': False,
         }

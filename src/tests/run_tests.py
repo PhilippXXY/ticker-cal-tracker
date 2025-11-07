@@ -49,6 +49,9 @@ def run_unit_tests(verbose=True):
         'src.tests.test_stocks_rest',
         'src.tests.test_user_service',
         'src.tests.test_user_rest',
+        'src.tests.test_calendar_utils',
+        'src.tests.test_calendar_service',
+        'src.tests.test_calendar_rest',
     ]
     
     # Skip integration tests
@@ -177,6 +180,7 @@ def run_db_integration_tests(verbose=True):
         'src.tests.test_watchlists_service_integration',
         'src.tests.test_stocks_service_integration',
         'src.tests.test_user_service_integration',
+        'src.tests.test_calendar_service_integration',
     ]
     
     success = True

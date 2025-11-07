@@ -56,18 +56,18 @@ class WatchlistService:
         for event_type in EventType:
             settings_columns.setdefault(event_type.db_column, True)
 
-        calendar_url = calendar_utils.generate_calendar_url()
+        calendar_token = calendar_utils.generate_calendar_token()
 
         watchlist_query = """
             INSERT INTO watchlists (
                 user_id,
                 name,
-                calendar_url
+                calendar_token
             )
             VALUES (
                 :user_id,
                 :name,
-                :calendar_url
+                :calendar_token
             )
             RETURNING id
         """
@@ -99,7 +99,7 @@ class WatchlistService:
                 params={
                     'user_id': user_id,
                     'name': name,
-                    'calendar_url': calendar_url,
+                    'calendar_token': calendar_token,
                 },
             )
             result_list = list(result)
@@ -137,7 +137,7 @@ class WatchlistService:
             SELECT
                 w.id,
                 w.name,
-                w.calendar_url,
+                w.calendar_token,
                 w.created_at,
                 ws.include_earnings_announcement,
                 ws.include_dividend_ex,
@@ -176,7 +176,7 @@ class WatchlistService:
             SELECT
                 w.id,
                 w.name,
-                w.calendar_url,
+                w.calendar_token,
                 w.created_at,
                 ws.include_earnings_announcement,
                 ws.include_dividend_ex,
