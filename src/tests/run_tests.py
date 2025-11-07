@@ -46,7 +46,9 @@ def run_unit_tests(verbose=True):
         'src.tests.test_watchlists_service',
         'src.tests.test_watchlists_rest',
         'src.tests.test_stocks_service',
-        'src.tests.test_stocks_rest'
+        'src.tests.test_stocks_rest',
+        'src.tests.test_user_service',
+        'src.tests.test_user_rest',
     ]
     
     # Skip integration tests
@@ -173,7 +175,8 @@ def run_db_integration_tests(verbose=True):
         'src.tests.test_local_adapter_integration',
         'src.tests.test_adapter_factory_integration',
         'src.tests.test_watchlists_service_integration',
-        'src.tests.test_stocks_service_integration'
+        'src.tests.test_stocks_service_integration',
+        'src.tests.test_user_service_integration',
     ]
     
     success = True

@@ -48,14 +48,6 @@ CREATE INDEX idx_stock_events_ticker ON stock_events(stock_ticker);
 CREATE INDEX idx_stock_events_date ON stock_events(event_date);
 CREATE INDEX idx_stock_events_type ON stock_events(type);
 
--- User preferences table
-CREATE TABLE user_preferences (
-    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    default_reminder_before INTERVAL DEFAULT '1 day',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Watchlists table
 CREATE TABLE watchlists (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -102,12 +94,6 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
-
--- Create trigger for user_preferences
-CREATE TRIGGER update_user_preferences_updated_at
-    BEFORE UPDATE ON user_preferences
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
 
 -- Create trigger for watchlist_settings
 CREATE TRIGGER update_watchlist_settings_updated_at

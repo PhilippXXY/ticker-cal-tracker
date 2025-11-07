@@ -7,10 +7,6 @@ INSERT INTO users (email, password) VALUES
     ('bob@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEuUhe'),
     ('charlie@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEuUhe');
 
--- Insert user preferences for all users
-INSERT INTO user_preferences (user_id, default_reminder_before)
-SELECT id, '1 day'::INTERVAL FROM users;
-
 -- Insert sample stocks
 INSERT INTO stocks (ticker, name) VALUES
     ('AAPL', 'Apple Inc.'),
