@@ -1,3 +1,5 @@
+# Disclaimer: Created by GitHub Copilot
+
 import unittest
 from datetime import datetime, timezone, timedelta
 from unittest.mock import Mock, patch
