@@ -1,5 +1,6 @@
 import logging
 import sys
+import atexit
 
 from flask import Flask
 from flask_smorest import Api
@@ -10,6 +11,7 @@ from src.api.routes.stocks_rest import stocks_bp
 from src.api.routes.user_rest import user_bp
 from src.api.routes.watchlists_rest import watchlists_bp
 from src.database.adapter_factory import DatabaseAdapterFactory, parse_environment_from_args
+from src.app.background.scheduler import TaskScheduler
 
 def create_app():
     """
@@ -60,7 +62,11 @@ def create_app():
     if not app.debug:
         logging.basicConfig(level=logging.INFO)
     
-    # Register cleanup handler
+    # Initialize and start background task scheduler
+    scheduler = TaskScheduler()
+    scheduler.start()
+    
+    # Register cleanup handlers
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         '''
@@ -75,6 +81,9 @@ def create_app():
             logging.info("Database connections closed")
         except Exception as e:
             logging.warning(f"Error during database cleanup: {e}")
+    
+    # Register cleanup for scheduler on app exit
+    atexit.register(lambda: scheduler.shutdown())
         
     return app
 
