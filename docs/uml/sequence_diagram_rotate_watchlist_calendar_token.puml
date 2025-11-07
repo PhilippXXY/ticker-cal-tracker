@@ -2,21 +2,32 @@
 title Rotate Watchlist Calendar Token - Sequence Diagram
 
 actor User
-participant "Application" as APP
+participant "CalendarREST" as REST
+participant "CalendarService" as SVC
 database "SQL Database" as DB
 
-User -> APP: POST /api/watchlists/{watchlist_id}/rotate
+User -> REST: POST /api/calendar/{watchlist_id}
 
 == Authentication & Validation ==
-APP -> APP: Validate user authentication and permission
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate watchlist_id is UUID
 
-== Check Watchlist Ownership ==
-APP -> DB: SELECT * FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
-alt watchlist not found
-  APP --> User: 404 Not Found
-else watchlist found
-  == Generate New Token ==
-  APP -> DB: UPDATE watchlist SET calendar_token = gen_token() WHERE id=:watchlist_id\nRETURNING calendar_token
-  APP --> User: 200 OK { calendar_token }
+== Rotate Token ==
+REST -> SVC: rotate_calendar_token(\n  user_id,\n  watchlist_id)
+
+== Generate New Token ==
+SVC -> SVC: calendar_utils.generate_calendar_token()
+
+== Update Calendar Token ==
+SVC -> DB: UPDATE watchlists\nSET calendar_token = :new_token\nWHERE id = :watchlist_id\nAND user_id = :user_id\nRETURNING calendar_token
+DB --> SVC: new_token or None
+
+alt watchlist not found or unauthorized
+  SVC --> REST: LookupError
+  REST --> User: 404 Not Found
+else token updated
+  SVC --> REST: new_token
+  REST --> User: 200 OK\n{ calendar_token: "..." }
 end
+
 @enduml

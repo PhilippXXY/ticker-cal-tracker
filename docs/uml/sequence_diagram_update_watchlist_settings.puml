@@ -2,23 +2,47 @@
 title Update Watchlist Settings - Sequence Diagram
 
 actor User
-participant "Application" as APP
+participant "WatchlistsREST" as REST
+participant "WatchlistService" as SVC
 database "SQL Database" as DB
 
-User -> APP: PATCH /api/watchlists/{watchlist_id}\n{ include_earnings: true, include_dividends: false, detail_level: "standard" }
+User -> REST: PUT /api/watchlists/{watchlist_id}\n{\n  name: "Tech Stocks",\n  include_earnings_announcement: true,\n  include_dividend_ex: false\n}
 
 == Authentication & Validation ==
-APP -> APP: Validate user authentication and permission
-APP -> APP: Validate payload
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate payload
+REST -> REST: _extract_watchlist_settings(payload)
 
-== Check Watchlist Ownership ==
-APP -> DB: SELECT * FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
+== Update Watchlist ==
+REST -> SVC: update_watchlist(\n  user_id,\n  watchlist_id,\n  name,\n  watchlist_settings)
+
+== Verify Watchlist Exists ==
+SVC -> SVC: get_watchlist_by_id(user_id, watchlist_id)
+SVC -> DB: SELECT w.*, ws.*\nFROM watchlists w\nWHERE w.id = :watchlist_id\nAND w.user_id = :user_id
+DB --> SVC: existing watchlist or None
 
 alt watchlist not found
-  APP --> User: 404 Not Found
-else watchlist found
-  == Update Watchlist Settings ==
-  APP -> DB: UPDATE watchlist SET include_earnings=:include_earnings,\ninclude_dividends=:include_dividends, detail_level=:detail_level\nWHERE id=:watchlist_id
-  APP --> User: 200 OK { watchlist }
+  SVC --> REST: False
+  REST --> User: 404 Not Found
 end
+
+== Update Watchlist Name (if provided) ==
+alt name is not None
+  SVC -> DB: UPDATE watchlists\nSET name = :name\nWHERE id = :watchlist_id\nAND user_id = :user_id
+  DB --> SVC: rows affected
+end
+
+== Update Watchlist Settings (if provided) ==
+alt watchlist_settings is not None
+  SVC -> DB: UPDATE watchlist_settings\nSET include_earnings_announcement = :value1,\n    include_dividend_ex = :value2,\n    ...,\n    updated_at = CURRENT_TIMESTAMP\nWHERE watchlist_id = :watchlist_id
+  DB --> SVC: rows affected
+end
+
+SVC --> REST: True
+REST -> SVC: get_watchlist_by_id(user_id, watchlist_id)
+SVC -> DB: SELECT w.*, ws.*...
+DB --> SVC: updated watchlist
+SVC --> REST: watchlist dict
+REST --> User: 200 OK\n{ id, name, settings... }
+
 @enduml
