@@ -314,5 +314,304 @@ class TestCalendarServiceIntegration(unittest.TestCase):
         self.assertEqual(dates, sorted(dates))
 
 
+class TestRotateCalendarTokenIntegration(unittest.TestCase):
+    '''Integration tests for calendar token rotation with real database.'''
+    
+    @classmethod
+    def setUpClass(cls):
+        '''Set up database connection for all tests.'''
+        cls.adapter = LocalDatabaseAdapter(
+            host=os.getenv('DB_HOST', '127.0.0.1'),
+            port=int(os.getenv('DB_PORT', 5432)),
+            database=os.getenv('DB_NAME', 'ticker_calendar_local_dev_db'),
+            user=os.getenv('DB_USER', 'ticker_dev'),
+            password=os.getenv('DB_PASSWORD', 'dev_password_123')
+        )
+        
+        if not cls.adapter.health_check():
+            raise unittest.SkipTest("Database is not accessible.")
+        
+        DatabaseAdapterFactory.initialize(environment=DatabaseEnvironment.DEVELOPMENT)
+        cls.service = CalendarService()
+    
+    @classmethod
+    def tearDownClass(cls):
+        '''Clean up database connection.'''
+        cls.adapter.close()
+    
+    def setUp(self):
+        '''Set up test data before each test.'''
+        self.test_user_id = uuid4()
+        self.test_watchlist_id = uuid4()
+        self.test_calendar_token = f'test_token_{uuid4().hex[:16]}'
+        
+        # Create test user
+        self._create_test_user()
+        
+        # Create test watchlist
+        self._create_test_watchlist()
+    
+    def tearDown(self):
+        '''Clean up test data after each test.'''
+        self._cleanup_watchlist_settings()
+        self._cleanup_watchlists()
+        self._cleanup_users()
+    
+    def _create_test_user(self):
+        '''Helper to create a test user.'''
+        query = """
+            INSERT INTO users (id, email, password)
+            VALUES (:user_id, :email, :password)
+            ON CONFLICT (id) DO NOTHING
+        """
+        self.adapter.execute_update(
+            query=query,
+            params={
+                'user_id': self.test_user_id,
+                'email': f'test_{self.test_user_id.hex[:8]}@example.com',
+                'password': 'test_hash'
+            }
+        )
+    
+    def _create_test_watchlist(self):
+        '''Helper to create a test watchlist.'''
+        query = """
+            INSERT INTO watchlists (id, user_id, name, calendar_token)
+            VALUES (:watchlist_id, :user_id, :name, :calendar_token)
+        """
+        self.adapter.execute_update(
+            query=query,
+            params={
+                'watchlist_id': self.test_watchlist_id,
+                'user_id': self.test_user_id,
+                'name': 'Test Watchlist',
+                'calendar_token': self.test_calendar_token
+            }
+        )
+        
+        # Create watchlist settings
+        settings_query = """
+            INSERT INTO watchlist_settings (watchlist_id)
+            VALUES (:watchlist_id)
+        """
+        self.adapter.execute_update(
+            query=settings_query,
+            params={'watchlist_id': self.test_watchlist_id}
+        )
+    
+    def _cleanup_watchlist_settings(self):
+        '''Helper to clean up watchlist settings.'''
+        query = "DELETE FROM watchlist_settings WHERE watchlist_id = :watchlist_id"
+        self.adapter.execute_update(query=query, params={'watchlist_id': self.test_watchlist_id})
+    
+    def _cleanup_watchlists(self):
+        '''Helper to clean up watchlists.'''
+        query = "DELETE FROM watchlists WHERE id = :watchlist_id"
+        self.adapter.execute_update(query=query, params={'watchlist_id': self.test_watchlist_id})
+    
+    def _cleanup_users(self):
+        '''Helper to clean up users.'''
+        query = "DELETE FROM users WHERE id = :user_id"
+        self.adapter.execute_update(query=query, params={'user_id': self.test_user_id})
+    
+    def test_rotate_token_success(self):
+        '''Test successful token rotation in database.'''
+        # Get original token
+        original_token = self._get_watchlist_token()
+        self.assertEqual(original_token, self.test_calendar_token)
+        
+        # Rotate the token
+        new_token = self.service.rotate_calendar_token(
+            user_id=self.test_user_id,
+            watchlist_id=self.test_watchlist_id
+        )
+        
+        # Verify new token is different
+        self.assertNotEqual(new_token, original_token)
+        self.assertIsInstance(new_token, str)
+        self.assertGreater(len(new_token), 20)  # Should be a substantial token
+        
+        # Verify token was updated in database
+        updated_token = self._get_watchlist_token()
+        self.assertEqual(updated_token, new_token)
+    
+    def test_rotate_token_wrong_user(self):
+        '''Test that rotation fails for wrong user.'''
+        wrong_user_id = uuid4()
+        
+        with self.assertRaises(LookupError):
+            self.service.rotate_calendar_token(
+                user_id=wrong_user_id,
+                watchlist_id=self.test_watchlist_id
+            )
+        
+        # Verify original token is unchanged
+        token = self._get_watchlist_token()
+        self.assertEqual(token, self.test_calendar_token)
+    
+    def test_rotate_token_nonexistent_watchlist(self):
+        '''Test that rotation fails for non-existent watchlist.'''
+        fake_watchlist_id = uuid4()
+        
+        with self.assertRaises(LookupError):
+            self.service.rotate_calendar_token(
+                user_id=self.test_user_id,
+                watchlist_id=fake_watchlist_id
+            )
+    
+    def test_rotate_token_multiple_times(self):
+        '''Test rotating token multiple times generates different tokens.'''
+        tokens = set()
+        
+        for _ in range(3):
+            new_token = self.service.rotate_calendar_token(
+                user_id=self.test_user_id,
+                watchlist_id=self.test_watchlist_id
+            )
+            tokens.add(new_token)
+        
+        # All tokens should be unique
+        self.assertEqual(len(tokens), 3)
+    
+    def _get_watchlist_token(self):
+        '''Helper to get current token from database.'''
+        query = "SELECT calendar_token FROM watchlists WHERE id = :watchlist_id"
+        result = list(self.adapter.execute_query(
+            query=query,
+            params={'watchlist_id': self.test_watchlist_id}
+        ))
+        return result[0]['calendar_token'] if result else None
+
+
+class TestGetCalendarTokenIntegration(unittest.TestCase):
+    '''Integration tests for calendar token retrieval with real database.'''
+    
+    @classmethod
+    def setUpClass(cls):
+        '''Set up database connection for all tests.'''
+        cls.adapter = LocalDatabaseAdapter(
+            host=os.getenv('DB_HOST', '127.0.0.1'),
+            port=int(os.getenv('DB_PORT', 5432)),
+            database=os.getenv('DB_NAME', 'ticker_calendar_local_dev_db'),
+            user=os.getenv('DB_USER', 'ticker_dev'),
+            password=os.getenv('DB_PASSWORD', 'dev_password_123')
+        )
+        
+        if not cls.adapter.health_check():
+            raise unittest.SkipTest("Database is not accessible.")
+        
+        DatabaseAdapterFactory.initialize(environment=DatabaseEnvironment.DEVELOPMENT)
+        cls.service = CalendarService()
+    
+    @classmethod
+    def tearDownClass(cls):
+        '''Clean up database connection.'''
+        cls.adapter.close()
+    
+    def setUp(self):
+        '''Set up test data before each test.'''
+        self.test_user_id = uuid4()
+        self.test_watchlist_id = uuid4()
+        self.test_calendar_token = f'test_token_{uuid4().hex[:16]}'
+        
+        # Create test user
+        self._create_test_user()
+        
+        # Create test watchlist
+        self._create_test_watchlist()
+    
+    def tearDown(self):
+        '''Clean up test data after each test.'''
+        self._cleanup_watchlist_settings()
+        self._cleanup_watchlists()
+        self._cleanup_users()
+    
+    def _create_test_user(self):
+        '''Helper to create a test user.'''
+        query = """
+            INSERT INTO users (id, email, password)
+            VALUES (:user_id, :email, :password)
+            ON CONFLICT (id) DO NOTHING
+        """
+        self.adapter.execute_update(
+            query=query,
+            params={
+                'user_id': self.test_user_id,
+                'email': f'test_{self.test_user_id.hex[:8]}@example.com',
+                'password': 'test_hash'
+            }
+        )
+    
+    def _create_test_watchlist(self):
+        '''Helper to create a test watchlist.'''
+        query = """
+            INSERT INTO watchlists (id, user_id, name, calendar_token)
+            VALUES (:watchlist_id, :user_id, :name, :calendar_token)
+        """
+        self.adapter.execute_update(
+            query=query,
+            params={
+                'watchlist_id': self.test_watchlist_id,
+                'user_id': self.test_user_id,
+                'name': 'Test Watchlist',
+                'calendar_token': self.test_calendar_token
+            }
+        )
+        
+        # Create watchlist settings
+        settings_query = """
+            INSERT INTO watchlist_settings (watchlist_id)
+            VALUES (:watchlist_id)
+        """
+        self.adapter.execute_update(
+            query=settings_query,
+            params={'watchlist_id': self.test_watchlist_id}
+        )
+    
+    def _cleanup_watchlist_settings(self):
+        '''Helper to clean up watchlist settings.'''
+        query = "DELETE FROM watchlist_settings WHERE watchlist_id = :watchlist_id"
+        self.adapter.execute_update(query=query, params={'watchlist_id': self.test_watchlist_id})
+    
+    def _cleanup_watchlists(self):
+        '''Helper to clean up watchlists.'''
+        query = "DELETE FROM watchlists WHERE id = :watchlist_id"
+        self.adapter.execute_update(query=query, params={'watchlist_id': self.test_watchlist_id})
+    
+    def _cleanup_users(self):
+        '''Helper to clean up users.'''
+        query = "DELETE FROM users WHERE id = :user_id"
+        self.adapter.execute_update(query=query, params={'user_id': self.test_user_id})
+    
+    def test_get_token_success(self):
+        '''Test successful token retrieval from database.'''
+        token = self.service.get_calendar_token(
+            user_id=self.test_user_id,
+            watchlist_id=self.test_watchlist_id
+        )
+        
+        self.assertEqual(token, self.test_calendar_token)
+    
+    def test_get_token_wrong_user(self):
+        '''Test that retrieval fails for wrong user.'''
+        wrong_user_id = uuid4()
+        
+        with self.assertRaises(LookupError):
+            self.service.get_calendar_token(
+                user_id=wrong_user_id,
+                watchlist_id=self.test_watchlist_id
+            )
+    
+    def test_get_token_nonexistent_watchlist(self):
+        '''Test that retrieval fails for non-existent watchlist.'''
+        fake_watchlist_id = uuid4()
+        
+        with self.assertRaises(LookupError):
+            self.service.get_calendar_token(
+                user_id=self.test_user_id,
+                watchlist_id=fake_watchlist_id
+            )
+
+
 if __name__ == '__main__':
     unittest.main()

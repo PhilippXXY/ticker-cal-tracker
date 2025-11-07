@@ -1,5 +1,6 @@
 from typing import List, Optional
 from datetime import timedelta
+from uuid import UUID
 from src.database.adapter_factory import DatabaseAdapterFactory
 from src.models.stock_event_model import StockEvent, EventType
 from src.models.stock_model import Stock
@@ -103,3 +104,88 @@ class CalendarService:
         )
 
         return ics_content
+
+    def rotate_calendar_token(self, *, user_id: UUID, watchlist_id: UUID) -> str:
+        '''
+        Generate and update a new calendar token for a watchlist.
+        
+        Args:
+            user_id: The ID of the user who owns the watchlist.
+            watchlist_id: The ID of the watchlist to rotate the token for.
+            
+        Returns:
+            str: The newly generated calendar token.
+            
+        Raises:
+            ValueError: If user_id or watchlist_id are invalid.
+            LookupError: If the watchlist doesn't exist or doesn't belong to the user.
+        '''
+        if not isinstance(user_id, UUID):
+            raise ValueError('user_id must be a UUID instance.')
+        if not isinstance(watchlist_id, UUID):
+            raise ValueError('watchlist_id must be a UUID instance.')
+        
+        # Generate a new token
+        new_token = calendar_utils.generate_calendar_token()
+        
+        # Update the watchlist with the new token, but only if it belongs to the user
+        update_query = """
+        UPDATE watchlists
+        SET calendar_token = :new_token
+        WHERE id = :watchlist_id AND user_id = :user_id
+        RETURNING calendar_token
+        """
+        
+        result = list(self.db.execute_query(
+            query=update_query,
+            params={
+                'new_token': new_token,
+                'watchlist_id': watchlist_id,
+                'user_id': user_id
+            }
+        ))
+        
+        if not result:
+            raise LookupError('Watchlist not found or does not belong to the user.')
+        
+        return new_token
+    
+    def get_calendar_token(self, *, user_id: UUID, watchlist_id: UUID) -> str:
+        '''
+        Retrieve the calendar token for a watchlist.
+        
+        Args:
+            user_id: The ID of the user who owns the watchlist.
+            watchlist_id: The ID of the watchlist to get the token for.
+            
+        Returns:
+            str: The calendar token for the watchlist.
+            
+        Raises:
+            ValueError: If user_id or watchlist_id are invalid.
+            LookupError: If the watchlist doesn't exist or doesn't belong to the user.
+        '''
+        if not isinstance(user_id, UUID):
+            raise ValueError('user_id must be a UUID instance.')
+        if not isinstance(watchlist_id, UUID):
+            raise ValueError('watchlist_id must be a UUID instance.')
+        
+        # Query the watchlist to get the calendar token
+        query = """
+        SELECT calendar_token
+        FROM watchlists
+        WHERE id = :watchlist_id AND user_id = :user_id
+        """
+        
+        result = list(self.db.execute_query(
+            query=query,
+            params={
+                'watchlist_id': watchlist_id,
+                'user_id': user_id
+            }
+        ))
+        
+        if not result:
+            raise LookupError('Watchlist not found or does not belong to the user.')
+        
+        return result[0]['calendar_token']

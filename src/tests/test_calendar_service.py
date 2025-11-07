@@ -229,5 +229,221 @@ class TestGetCalendar(unittest.TestCase):
             self.service.get_calendar(token='   ')
 
 
+class TestRotateCalendarToken(unittest.TestCase):
+    '''Test calendar token rotation.'''
+    
+    def setUp(self):
+        '''Set up test fixtures.'''
+        self.mock_db = Mock()
+        
+        with patch('src.app.services.calendar_service.DatabaseAdapterFactory.get_instance', return_value=self.mock_db):
+            self.service = CalendarService()
+        
+        self.user_id = uuid4()
+        self.watchlist_id = uuid4()
+    
+    @patch('src.app.utils.calendar_utils.generate_calendar_token')
+    def test_rotate_token_success(self, mock_generate_token):
+        '''Test successful token rotation.'''
+        new_token = 'new_secure_token_xyz789'
+        mock_generate_token.return_value = new_token
+        
+        self.mock_db.execute_query.return_value = [{'calendar_token': new_token}]
+        
+        result = self.service.rotate_calendar_token(
+            user_id=self.user_id,
+            watchlist_id=self.watchlist_id
+        )
+        
+        self.assertEqual(result, new_token)
+        mock_generate_token.assert_called_once()
+        
+        # Verify database update was called with correct parameters
+        self.mock_db.execute_query.assert_called_once()
+        call_kwargs = self.mock_db.execute_query.call_args.kwargs
+        self.assertIn('UPDATE watchlists', call_kwargs['query'])
+        self.assertIn('calendar_token', call_kwargs['query'])
+        self.assertEqual(call_kwargs['params']['new_token'], new_token)
+        self.assertEqual(call_kwargs['params']['watchlist_id'], self.watchlist_id)
+        self.assertEqual(call_kwargs['params']['user_id'], self.user_id)
+    
+    @patch('src.app.utils.calendar_utils.generate_calendar_token')
+    def test_rotate_token_watchlist_not_found(self, mock_generate_token):
+        '''Test LookupError raised when watchlist not found.'''
+        mock_generate_token.return_value = 'new_token'
+        self.mock_db.execute_query.return_value = []
+        
+        with self.assertRaises(LookupError) as context:
+            self.service.rotate_calendar_token(
+                user_id=self.user_id,
+                watchlist_id=self.watchlist_id
+            )
+        
+        self.assertIn('not found', str(context.exception).lower())
+    
+    @patch('src.app.utils.calendar_utils.generate_calendar_token')
+    def test_rotate_token_wrong_user(self, mock_generate_token):
+        '''Test that token rotation fails when watchlist doesn't belong to user.'''
+        mock_generate_token.return_value = 'new_token'
+        self.mock_db.execute_query.return_value = []
+        
+        with self.assertRaises(LookupError):
+            self.service.rotate_calendar_token(
+                user_id=uuid4(),  # Different user
+                watchlist_id=self.watchlist_id
+            )
+    
+    def test_rotate_token_invalid_user_id(self):
+        '''Test ValueError raised for invalid user_id type.'''
+        with self.assertRaises(ValueError) as context:
+            self.service.rotate_calendar_token(
+                user_id='not-a-uuid', # pyright: ignore[reportArgumentType]
+                watchlist_id=self.watchlist_id
+            )
+        
+        self.assertIn('user_id must be a UUID', str(context.exception))
+    
+    def test_rotate_token_invalid_watchlist_id(self):
+        '''Test ValueError raised for invalid watchlist_id type.'''
+        with self.assertRaises(ValueError) as context:
+            self.service.rotate_calendar_token(
+                user_id=self.user_id,
+                watchlist_id='not-a-uuid' # pyright: ignore[reportArgumentType]
+            )
+        
+        self.assertIn('watchlist_id must be a UUID', str(context.exception))
+    
+    @patch('src.app.utils.calendar_utils.generate_calendar_token')
+    def test_rotate_token_uses_parameterized_query(self, mock_generate_token):
+        '''Test that update uses parameterized query for security.'''
+        mock_generate_token.return_value = 'token123'
+        self.mock_db.execute_query.return_value = [{'calendar_token': 'token123'}]
+        
+        self.service.rotate_calendar_token(
+            user_id=self.user_id,
+            watchlist_id=self.watchlist_id
+        )
+        
+        call_kwargs = self.mock_db.execute_query.call_args.kwargs
+        self.assertIn(':new_token', call_kwargs['query'])
+        self.assertIn(':watchlist_id', call_kwargs['query'])
+        self.assertIn(':user_id', call_kwargs['query'])
+    
+    @patch('src.app.utils.calendar_utils.generate_calendar_token')
+    def test_rotate_token_db_error(self, mock_generate_token):
+        '''Test handling of database errors.'''
+        mock_generate_token.return_value = 'new_token'
+        self.mock_db.execute_query.side_effect = Exception('Database connection failed')
+        
+        with self.assertRaises(Exception) as context:
+            self.service.rotate_calendar_token(
+                user_id=self.user_id,
+                watchlist_id=self.watchlist_id
+            )
+        
+        self.assertIn('Database connection failed', str(context.exception))
+
+
+class TestGetCalendarToken(unittest.TestCase):
+    '''Test calendar token retrieval.'''
+    
+    def setUp(self):
+        '''Set up test fixtures.'''
+        self.mock_db = Mock()
+        
+        with patch('src.app.services.calendar_service.DatabaseAdapterFactory.get_instance', return_value=self.mock_db):
+            self.service = CalendarService()
+        
+        self.user_id = uuid4()
+        self.watchlist_id = uuid4()
+        self.test_token = 'existing_token_abc123'
+    
+    def test_get_token_success(self):
+        '''Test successful token retrieval.'''
+        self.mock_db.execute_query.return_value = [{'calendar_token': self.test_token}]
+        
+        result = self.service.get_calendar_token(
+            user_id=self.user_id,
+            watchlist_id=self.watchlist_id
+        )
+        
+        self.assertEqual(result, self.test_token)
+        
+        # Verify database query was called with correct parameters
+        self.mock_db.execute_query.assert_called_once()
+        call_kwargs = self.mock_db.execute_query.call_args.kwargs
+        self.assertIn('SELECT calendar_token', call_kwargs['query'])
+        self.assertIn('FROM watchlists', call_kwargs['query'])
+        self.assertEqual(call_kwargs['params']['watchlist_id'], self.watchlist_id)
+        self.assertEqual(call_kwargs['params']['user_id'], self.user_id)
+    
+    def test_get_token_watchlist_not_found(self):
+        '''Test LookupError raised when watchlist not found.'''
+        self.mock_db.execute_query.return_value = []
+        
+        with self.assertRaises(LookupError) as context:
+            self.service.get_calendar_token(
+                user_id=self.user_id,
+                watchlist_id=self.watchlist_id
+            )
+        
+        self.assertIn('not found', str(context.exception).lower())
+    
+    def test_get_token_wrong_user(self):
+        '''Test that retrieval fails when watchlist doesn't belong to user.'''
+        self.mock_db.execute_query.return_value = []
+        
+        with self.assertRaises(LookupError):
+            self.service.get_calendar_token(
+                user_id=uuid4(),  # Different user
+                watchlist_id=self.watchlist_id
+            )
+    
+    def test_get_token_invalid_user_id(self):
+        '''Test ValueError raised for invalid user_id type.'''
+        with self.assertRaises(ValueError) as context:
+            self.service.get_calendar_token(
+                user_id='not-a-uuid', # pyright: ignore[reportArgumentType]
+                watchlist_id=self.watchlist_id
+            )
+        
+        self.assertIn('user_id must be a UUID', str(context.exception))
+    
+    def test_get_token_invalid_watchlist_id(self):
+        '''Test ValueError raised for invalid watchlist_id type.'''
+        with self.assertRaises(ValueError) as context:
+            self.service.get_calendar_token(
+                user_id=self.user_id,
+                watchlist_id='not-a-uuid' # pyright: ignore[reportArgumentType]
+            )
+        
+        self.assertIn('watchlist_id must be a UUID', str(context.exception))
+    
+    def test_get_token_uses_parameterized_query(self):
+        '''Test that query uses parameterized query for security.'''
+        self.mock_db.execute_query.return_value = [{'calendar_token': self.test_token}]
+        
+        self.service.get_calendar_token(
+            user_id=self.user_id,
+            watchlist_id=self.watchlist_id
+        )
+        
+        call_kwargs = self.mock_db.execute_query.call_args.kwargs
+        self.assertIn(':watchlist_id', call_kwargs['query'])
+        self.assertIn(':user_id', call_kwargs['query'])
+    
+    def test_get_token_db_error(self):
+        '''Test handling of database errors.'''
+        self.mock_db.execute_query.side_effect = Exception('Database connection failed')
+        
+        with self.assertRaises(Exception) as context:
+            self.service.get_calendar_token(
+                user_id=self.user_id,
+                watchlist_id=self.watchlist_id
+            )
+        
+        self.assertIn('Database connection failed', str(context.exception))
+
+
 if __name__ == '__main__':
     unittest.main()
