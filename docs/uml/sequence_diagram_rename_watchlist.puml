@@ -2,28 +2,38 @@
 title Rename Watchlist - Sequence Diagram
 
 actor User
-participant "Application" as APP
+participant "WatchlistsREST" as REST
+participant "WatchlistService" as SVC
 database "SQL Database" as DB
 
-User -> APP: PATCH /api/watchlists/{watchlist_id} { name: "Earnings Only" }
+User -> REST: PUT /api/watchlists/{watchlist_id}\n{ name: "Earnings Only" }
 
 == Authentication & Validation ==
-APP -> APP: Validate user authentication and permission
-APP -> APP: Validate payload
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate name not empty
 
-== Check Watchlist Ownership ==
-APP -> DB: SELECT id FROM watchlist WHERE id=:watchlist_id AND user_id=:user_id
+== Update Watchlist ==
+REST -> SVC: update_watchlist(\n  user_id,\n  watchlist_id,\n  name,\n  watchlist_settings=None)
+
+== Verify Watchlist Exists ==
+SVC -> SVC: get_watchlist_by_id(user_id, watchlist_id)
+SVC -> DB: SELECT w.*, ws.*\nFROM watchlists w\nWHERE w.id = :watchlist_id\nAND w.user_id = :user_id
+DB --> SVC: existing watchlist or None
+
 alt watchlist not found
-  APP --> User: 404 Not Found
-else watchlist found
-  == Check Name Uniqueness ==
-  APP -> DB: SELECT 1 FROM watchlist WHERE user_id=:user_id AND name=:name AND id<>:watchlist_id
-  alt name already taken
-    APP --> User: 409 Conflict { code: NAME_TAKEN }
-  else name available
-    == Update Watchlist Name ==
-    APP -> DB: UPDATE watchlist SET name=:name WHERE id=:watchlist_id\nRETURNING *
-    APP --> User: 200 OK { watchlist }
-  end
+  SVC --> REST: False
+  REST --> User: 404 Not Found
 end
+
+== Update Watchlist Name ==
+SVC -> DB: UPDATE watchlists\nSET name = :name\nWHERE id = :watchlist_id\nAND user_id = :user_id
+DB --> SVC: rows affected
+
+SVC --> REST: True
+REST -> SVC: get_watchlist_by_id(user_id, watchlist_id)
+SVC -> DB: SELECT w.*, ws.*...
+DB --> SVC: updated watchlist
+SVC --> REST: watchlist dict
+REST --> User: 200 OK\n{ id, name, calendar_token, settings... }
+
 @enduml

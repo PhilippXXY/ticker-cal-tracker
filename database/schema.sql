@@ -48,32 +48,31 @@ CREATE INDEX idx_stock_events_ticker ON stock_events(stock_ticker);
 CREATE INDEX idx_stock_events_date ON stock_events(event_date);
 CREATE INDEX idx_stock_events_type ON stock_events(type);
 
--- User preferences table
-CREATE TABLE user_preferences (
-    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    default_reminder_before INTERVAL DEFAULT '1 day',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Watchlists table
 CREATE TABLE watchlists (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    calendar_url VARCHAR(500) UNIQUE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    calendar_token VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index on user_id
+CREATE INDEX idx_watchlists_user_id ON watchlists(user_id);
+
+-- Watchlist settings table
+CREATE TABLE watchlist_settings (
+    watchlist_id UUID PRIMARY KEY REFERENCES watchlists(id) ON DELETE CASCADE,
     include_earnings_announcement BOOLEAN DEFAULT TRUE,
     include_dividend_ex BOOLEAN DEFAULT TRUE,
     include_dividend_declaration BOOLEAN DEFAULT TRUE,
     include_dividend_record BOOLEAN DEFAULT TRUE,
     include_dividend_payment BOOLEAN DEFAULT TRUE,
     include_stock_split BOOLEAN DEFAULT TRUE,
-    reminder_before INTERVAL DEFAULT '1 day'
+    reminder_before INTERVAL DEFAULT '1 day',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- Create index on user_id
-CREATE INDEX idx_watchlists_user_id ON watchlists(user_id);
 
 -- Follows table (junction table for many-to-many relationship)
 CREATE TABLE follows (
@@ -96,9 +95,9 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Create trigger for user_preferences
-CREATE TRIGGER update_user_preferences_updated_at
-    BEFORE UPDATE ON user_preferences
+-- Create trigger for watchlist_settings
+CREATE TRIGGER update_watchlist_settings_updated_at
+    BEFORE UPDATE ON watchlist_settings
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 

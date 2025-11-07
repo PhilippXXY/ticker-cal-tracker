@@ -7,10 +7,6 @@ INSERT INTO users (email, password) VALUES
     ('bob@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEuUhe'),
     ('charlie@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEuUhe');
 
--- Insert user preferences for all users
-INSERT INTO user_preferences (user_id, default_reminder_before)
-SELECT id, '1 day'::INTERVAL FROM users;
-
 -- Insert sample stocks
 INSERT INTO stocks (ticker, name) VALUES
     ('AAPL', 'Apple Inc.'),
@@ -57,31 +53,61 @@ INSERT INTO stock_events (stock_ticker, type, event_date, source) VALUES
     ('WMT', 'EARNINGS_ANNOUNCEMENT', '2025-11-16', 'AlphaVantage'),
     ('WMT', 'DIVIDEND_EX', '2025-11-08', 'AlphaVantage');
 
--- Insert sample watchlists
-INSERT INTO watchlists (user_id, name, calendar_url, reminder_before) VALUES
+INSERT INTO watchlists (user_id, name, calendar_token) VALUES
     (
         (SELECT id FROM users WHERE email = 'alice@example.com'),
         'Tech Stocks',
-        'https://calendar.example.com/alice/tech-stocks-' || uuid_generate_v4(),
-        '2 days'::INTERVAL
+        'tech-stocks-' || md5(random()::text)
     ),
     (
         (SELECT id FROM users WHERE email = 'alice@example.com'),
         'Dividend Payers',
-        'https://calendar.example.com/alice/dividend-payers-' || uuid_generate_v4(),
-        '1 day'::INTERVAL
+        'dividend-payers-' || md5(random()::text)
     ),
     (
         (SELECT id FROM users WHERE email = 'bob@example.com'),
         'Growth Portfolio',
-        'https://calendar.example.com/bob/growth-portfolio-' || uuid_generate_v4(),
-        '12 hours'::INTERVAL
+        'growth-portfolio-' || md5(random()::text)
     ),
     (
         (SELECT id FROM users WHERE email = 'charlie@example.com'),
         'All Stocks',
-        'https://calendar.example.com/charlie/all-stocks-' || uuid_generate_v4(),
-        '1 day'::INTERVAL
+        'all-stocks-' || md5(random()::text)
+    );
+
+-- Insert watchlist settings
+INSERT INTO watchlist_settings (watchlist_id, reminder_before, include_dividend_ex, include_dividend_declaration, include_dividend_record, include_dividend_payment) VALUES
+    (
+        (SELECT id FROM watchlists WHERE name = 'Tech Stocks' AND user_id = (SELECT id FROM users WHERE email = 'alice@example.com')),
+        '2 days'::INTERVAL,
+        TRUE,
+        TRUE,
+        TRUE,
+        TRUE
+    ),
+    (
+        (SELECT id FROM watchlists WHERE name = 'Dividend Payers' AND user_id = (SELECT id FROM users WHERE email = 'alice@example.com')),
+        '1 day'::INTERVAL,
+        TRUE,
+        TRUE,
+        TRUE,
+        TRUE
+    ),
+    (
+        (SELECT id FROM watchlists WHERE name = 'Growth Portfolio' AND user_id = (SELECT id FROM users WHERE email = 'bob@example.com')),
+        '12 hours'::INTERVAL,
+        FALSE,
+        FALSE,
+        FALSE,
+        FALSE
+    ),
+    (
+        (SELECT id FROM watchlists WHERE name = 'All Stocks' AND user_id = (SELECT id FROM users WHERE email = 'charlie@example.com')),
+        '1 day'::INTERVAL,
+        TRUE,
+        TRUE,
+        TRUE,
+        TRUE
     );
 
 -- Insert follows (stocks in watchlists)

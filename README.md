@@ -60,7 +60,6 @@ Create a `.env` file in the project root with your API keys:
 ```bash
 API_KEY_ALPHA_VANTAGE=your_alpha_vantage_key_here
 API_KEY_FINNHUB=your_finnhub_key_here
-API_KEY_OPEN_FIGI=your_open_figi_key_here
 ```
 
 ### 5. Run the Application

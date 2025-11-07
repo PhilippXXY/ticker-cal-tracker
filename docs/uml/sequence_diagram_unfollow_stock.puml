@@ -2,37 +2,47 @@
 title Unfollow Stock - Sequence Diagram
 
 actor User
-participant "Application" as APP
+participant "WatchlistsREST" as REST
+participant "WatchlistService" as SVC
 database "SQL Database" as DB
 
-User -> APP: DELETE /api/stocks/unfollow\n{ ticker: "AAPL", watchlist_id: "USA" }
+User -> REST: DELETE /api/watchlists/{watchlist_id}/stocks/{ticker}
 
 == Authentication & Validation ==
-APP -> APP: Validate user authentication and permission
-APP -> APP: Validate payload
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate ticker not empty
 
-== Find Stock ID ==
-APP -> DB: SELECT id FROM stock WHERE ticker = :ticker
-DB --> APP: stock_id
+== Remove Stock from Watchlist ==
+REST -> SVC: remove_stock_to_watchlist(\n  user_id,\n  watchlist_id,\n  stock_ticker)
 
-== Check Follow Relationship ==
-APP -> DB: SELECT * FROM follow WHERE watchlist_id = :watchlist_id AND stock_id = :stock_id
+SVC -> SVC: Normalize ticker to uppercase
 
-alt follow relationship not found
-    APP --> User: 404 Not Found { code: NOT_FOLLOWING_STOCK }
-else follow relationship exists
-    == Remove Follow Relationship ==
-    APP -> DB: DELETE FROM follow WHERE watchlist_id = :watchlist_id AND stock_id = :stock_id
-    
-    == Check if Stock Data Still Needed ==
-    APP -> DB: SELECT COUNT(*) FROM follow WHERE stock_id = :stock_id
-    
-    alt no other users follow this stock
-        APP -> DB: DELETE FROM stock_event WHERE stock_id = :stock_id
-        APP -> DB: DELETE FROM stock WHERE id = :stock_id
-    end
-    
-    == Success Response ==
-    APP --> User: 200 OK { message: "Successfully unfollowed stock" }
+== Verify Watchlist Access ==
+SVC -> SVC: get_watchlist_by_id(watchlist_id, user_id)
+SVC -> DB: SELECT w.*, ws.*\nFROM watchlists w\nWHERE w.id = :watchlist_id\nAND w.user_id = :user_id
+DB --> SVC: watchlist or None
+
+alt watchlist not found
+  SVC --> REST: LookupError
+  REST --> User: 404 Not Found
 end
+
+== Delete Follow Relationship ==
+SVC -> DB: DELETE FROM follows\nWHERE watchlist_id = :watchlist_id\nAND stock_ticker = :ticker
+DB --> SVC: rows_affected
+
+note right
+  Stock and stock_events remain in database
+  for caching purposes. They may be reused
+  if added to another watchlist later.
+end note
+
+alt rows_affected > 0
+  SVC --> REST: True
+  REST --> User: 204 No Content
+else no rows deleted
+  SVC --> REST: False
+  REST --> User: 404 Not Found\n{ message: "Stock not in watchlist" }
+end
+
 @enduml

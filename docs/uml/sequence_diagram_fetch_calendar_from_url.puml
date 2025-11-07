@@ -2,19 +2,37 @@
 title Fetch Calendar from URL - Sequence Diagram
 
 participant "Calendar Client" as CAL
-participant "Application" as APP
+participant "CalendarREST" as REST
+participant "CalendarService" as SVC
 database "SQL Database" as DB
 
-CAL -> APP: GET /cal/{url}
+CAL -> REST: GET /api/calendar/{token}.ics
 
-== Validate Watchlist ==
-APP -> DB: SELECT id FROM watchlist WHERE url=:url
+== Validate Token ==
+REST -> REST: Validate token not empty
+
+== Get Calendar ==
+REST -> SVC: get_calendar(token)
+
+== Lookup Watchlist by Token ==
+SVC -> DB: SELECT w.id, w.name, ws.reminder_before\nFROM watchlists w\nLEFT JOIN watchlist_settings ws\nWHERE w.calendar_token = :token
+DB --> SVC: watchlist data
+
 alt watchlist not found
-  APP --> CAL: 404 Not Found
-else watchlist found
-    == Generate Calendar Events ==
-    APP -> DB: SELECT s.*, se.* FROM follow f\nJOIN stock s ON s.id = f.stock_id\nJOIN stock_event se ON se.stock_id = s.id\nWHERE f.watchlist_id = :watchlist_id
-    APP --> APP: render VCALENDAR/VEVENTs from stock events
-    APP --> CAL: 200 OK text/calendar
+  SVC --> REST: LookupError
+  REST --> CAL: 404 Not Found
 end
+
+== Fetch Stock Events ==
+SVC -> DB: SELECT s.ticker, s.name, se.type, se.event_date, se.source\nFROM stock_events se\nJOIN stocks s ON se.stock_ticker = s.ticker\nJOIN follows f ON s.ticker = f.stock_ticker\nJOIN watchlists w ON f.watchlist_id = w.id\nJOIN watchlist_settings ws\nWHERE w.id = :watchlist_id\nAND event type matches settings
+DB --> SVC: List of stock events
+
+== Build iCalendar ==
+SVC -> SVC: calendar_utils.build_ics(\n  stock_events,\n  watchlist_name,\n  reminder_before)
+
+SVC --> REST: ics_content (VCALENDAR string)
+
+== Return iCalendar File ==
+REST --> CAL: 200 OK\nContent-Type: text/calendar\nContent-Disposition: attachment; filename="{token}.ics"\n\nBEGIN:VCALENDAR\n...\nEND:VCALENDAR
+
 @enduml

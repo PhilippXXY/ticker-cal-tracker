@@ -2,23 +2,33 @@
 title Delete Watchlist - Sequence Diagram
 
 actor User
-participant "Application" as APP
+participant "WatchlistsREST" as REST
+participant "WatchlistService" as SVC
 database "SQL Database" as DB
 
-User -> APP: DELETE /api/watchlists/{watchlist_id}
+User -> REST: DELETE /api/watchlists/{watchlist_id}
 
 == Authentication & Validation ==
-APP -> APP: Validate user authentication and permission
-APP -> APP: Validate payload
+REST -> REST: auth_utils.get_current_user_id()
 
-== Check Watchlist Existence ==
-APP -> DB: SELECT id FROM watchlist WHERE id = :watchlist_id AND user_id = :user_id
-alt watchlist not found
-    APP --> User: 404 Not Found
-else watchlist found
-    == Delete Watchlist and Dependencies ==
-    APP -> DB: DELETE FROM follow WHERE watchlist_id = :watchlist_id
-    APP -> DB: DELETE FROM watchlist WHERE id = :watchlist_id
-    APP --> User: 204 No Content
+== Delete Watchlist ==
+REST -> SVC: delete_watchlist(\n  user_id,\n  watchlist_id)
+
+== Delete with Cascade ==
+SVC -> DB: DELETE FROM watchlists\nWHERE id = :watchlist_id\nAND user_id = :user_id
+note right
+  ON DELETE CASCADE will automatically:
+  - Delete from watchlist_settings
+  - Delete from follows
+end note
+DB --> SVC: rows_affected
+
+alt rows_affected > 0
+  SVC --> REST: True
+  REST --> User: 204 No Content
+else no rows deleted
+  SVC --> REST: False
+  REST --> User: 404 Not Found
 end
+
 @enduml

@@ -11,6 +11,21 @@ class EventType(str, Enum):
     DIVIDEND_PAYMENT = "DIVIDEND_PAYMENT"
     STOCK_SPLIT = "STOCK_SPLIT"
     
+    @property
+    def db_column(self) -> str:
+        '''
+        Get the corresponding database column name for this event type.
+        '''
+        column_mapping = {
+            EventType.EARNINGS_ANNOUNCEMENT: "include_earnings_announcement",
+            EventType.DIVIDEND_EX: "include_dividend_ex",
+            EventType.DIVIDEND_DECLARATION: "include_dividend_declaration",
+            EventType.DIVIDEND_RECORD: "include_dividend_record",
+            EventType.DIVIDEND_PAYMENT: "include_dividend_payment",
+            EventType.STOCK_SPLIT: "include_stock_split"
+        }
+        return column_mapping[self]
+    
 @dataclass
 class StockEvent:
     stock: Stock

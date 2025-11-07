@@ -2,23 +2,31 @@
 title Delete User - Sequence Diagram
 
 actor User
-participant "Application" as APP
+participant "UserREST" as REST
 database "SQL Database" as DB
 
-User -> APP: DELETE /api/user
 
-== Authentication & Validation ==
-APP -> APP: Validate user authentication and permission
-APP -> APP: Validate payload
+User -> REST: DELETE /api/user/profile
 
-== User Deletion ==
-APP -> DB: BEGIN;
-APP -> DB: DELETE FROM "user" WHERE id=:user_id\n-- ON DELETE CASCADE handles user_preference, watchlist, follow
+== Authentication ==
+REST -> REST: auth_utils.get_current_user_id()
+
+== Delete User with Cascade ==
+REST -> DB: DELETE FROM users\nWHERE id = :user_id
+
+note right
+  ON DELETE CASCADE will automatically delete:
+  - All watchlists owned by the user
+  - All watchlist_settings for those watchlists
+  - All follows for those watchlists
+end note
+
+DB --> REST: rows_affected
+
 alt deletion successful
-  APP -> DB: COMMIT;
-  APP --> User: 204 No Content
-else deletion failed
-  APP -> DB: ROLLBACK;
-  APP --> User: 500 Server Error { code: DELETE_FAILED }
+  REST --> User: 204 No Content
+else user not found
+  REST --> User: 404 Not Found
 end
+
 @enduml

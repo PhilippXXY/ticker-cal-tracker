@@ -1,25 +1,42 @@
 @startuml sequence_diagram_update_user_preference_settings
-title Update User Preference Settings - Sequence Diagram
+title Update User Profile - Sequence Diagram
 
 actor User
-participant "Application" as APP
+participant "UserREST" as REST
+participant "UserService" as SVC
 database "SQL Database" as DB
 
-User -> APP: PATCH /api/user/preferences\n{ default_reminder: 30, default_detail_level: "standard" }
+
+User -> REST: PUT /api/user/profile\n{ email: "newemail@example.com" }
 
 == Authentication & Validation ==
-APP -> APP: Validate user authentication and permission
-APP -> APP: Validate payload
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate email format
+REST -> REST: Validate email not empty
 
-== Check Existing Preferences ==
-APP -> DB: SELECT * FROM user_preference WHERE user_id = :user_id
-alt preferences exist
-    == Update Preferences ==
-    APP -> DB: UPDATE user_preference SET default_reminder=:default_reminder,\ndefault_detail_level=:default_detail_level, updated_at=now()\nWHERE user_id=:user_id
-    APP --> User: 200 OK { preferences }
-else preferences do not exist
-    == Create Preferences ==
-    APP -> DB: INSERT INTO user_preference(user_id, default_reminder, default_detail_level, created_at, updated_at)\nVALUES (:user_id, :default_reminder, :default_detail_level, now(), now())
-    APP --> User: 201 Created { preferences }
+== Update User ==
+REST -> SVC: update_user(\n  user_id,\n  email)
+
+SVC -> SVC: Validate user_id is UUID
+SVC -> SVC: Validate email is not None
+
+== Update Email ==
+SVC -> DB: UPDATE users\nSET email = :email\nWHERE id = :user_id
+DB --> SVC: rows_affected
+
+alt rows_affected > 0
+  SVC --> REST: True
+  
+  == Retrieve Updated User ==
+  REST -> SVC: get_user(user_id)
+  SVC -> DB: SELECT email, created_at\nFROM users\nWHERE id = :user_id
+  DB --> SVC: user_data
+  SVC --> REST: User
+  
+  REST --> User: 200 OK\n{ email, created_at }
+else no rows updated
+  SVC --> REST: False
+  REST --> User: 400 Bad Request\n{ message: "No changes made" }
 end
+
 @enduml

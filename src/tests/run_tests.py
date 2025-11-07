@@ -42,7 +42,17 @@ def run_unit_tests(verbose=True):
         'src.tests.test_finnhub',
         'src.tests.test_external_api_facade',
         'src.tests.test_local_adapter',
-        'src.tests.test_adapter_factory'
+        'src.tests.test_adapter_factory',
+        'src.tests.test_watchlists_service',
+        'src.tests.test_watchlists_rest',
+        'src.tests.test_stocks_service',
+        'src.tests.test_stocks_rest',
+        'src.tests.test_user_service',
+        'src.tests.test_user_rest',
+        'src.tests.test_calendar_utils',
+        'src.tests.test_calendar_service',
+        'src.tests.test_calendar_rest',
+        'src.tests.test_background_tasks',
     ]
     
     # Skip integration tests
@@ -73,7 +83,8 @@ def run_api_integration_tests(verbose=True):
     print("\n" + "="*70)
     print("Running API Integration Tests")
     print("="*70)
-    print("⚠️  These tests make REAL API calls and count against rate limits!\n")
+    print("⚠️  These tests make REAL API calls and count against rate limits!")
+    print("💰 These tests will CONSUME your API quota!\n")
     
     # Check for API keys
     print("Checking for API keys...")
@@ -141,7 +152,8 @@ def run_db_integration_tests(verbose=True):
     print("\n" + "="*70)
     print("Running Database Integration Tests")
     print("="*70)
-    print("⚠️  These tests require a running PostgreSQL database!\n")
+    print("⚠️  These tests require a running PostgreSQL database!")
+    print("✓  These tests DO NOT make external API calls (safe on quota)\n")
     
     # Check if database is accessible
     print("Checking database connection...")
@@ -165,7 +177,12 @@ def run_db_integration_tests(verbose=True):
     
     tests = [
         'src.tests.test_local_adapter_integration',
-        'src.tests.test_adapter_factory_integration'
+        'src.tests.test_adapter_factory_integration',
+        'src.tests.test_watchlists_service_integration',
+        'src.tests.test_stocks_service_integration',
+        'src.tests.test_user_service_integration',
+        'src.tests.test_calendar_service_integration',
+        'src.tests.test_background_tasks_integration',
     ]
     
     success = True
@@ -201,6 +218,9 @@ def run_integration_tests(verbose=True):
     print("\n" + "="*70)
     print("Running ALL Integration Tests")
     print("="*70)
+    print("This will run:")
+    print("  1. Database integration tests (no API calls)")
+    print("  2. External API integration tests (uses API quota!)\n")
     
     success = True
     
@@ -237,37 +257,40 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
-  %(prog)s --unit                    # Run unit tests only (no API calls)
-  %(prog)s --integration             # Run all integration tests (API + DB)
-  %(prog)s --api-integration         # Run API integration tests only
-  %(prog)s --db-integration          # Run database integration tests only
-  %(prog)s --all                     # Run all tests
+  %(prog)s --unit                    # Run unit tests only (no API calls, completely free)
+  %(prog)s --db-integration          # Run database tests (no API calls, safe on quota)
+  %(prog)s --api-integration         # Run API tests (WARNING: uses API quota!)
+  %(prog)s --integration             # Run all integration tests (WARNING: uses API quota!)
+  %(prog)s --all                     # Run all tests (WARNING: uses API quota!)
   %(prog)s --unit -q                 # Run unit tests quietly
+
+Cost-free options: --unit, --db-integration
+Costs API quota: --api-integration, --integration, --all
         '''
     )
     
     parser.add_argument(
         '--unit',
         action='store_true',
-        help='Run unit tests only (no real API calls or database)'
+        help='Run unit tests only (no real API calls or database, completely free)'
     )
     
     parser.add_argument(
         '--integration',
         action='store_true',
-        help='Run all integration tests (API and database)'
+        help='Run all integration tests (both API and database - WARNING: uses API quota!)'
     )
     
     parser.add_argument(
         '--api-integration',
         action='store_true',
-        help='Run API integration tests only (makes real API calls)'
+        help='Run API integration tests only (makes real API calls - WARNING: costs quota!)'
     )
     
     parser.add_argument(
         '--db-integration',
         action='store_true',
-        help='Run database integration tests only (requires running database)'
+        help='Run database integration tests only (requires database, but NO API calls - safe on quota)'
     )
     
     parser.add_argument(
