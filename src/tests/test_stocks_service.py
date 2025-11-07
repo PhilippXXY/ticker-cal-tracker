@@ -4,11 +4,12 @@ Unit tests for StocksService.
 '''
 
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, call
 from datetime import datetime, timezone
 
 from src.app.services.stocks_service import StocksService
 from src.models.stock_model import Stock
+from src.models.stock_event_model import EventType, StockEvent
 
 
 class TestStocksServiceInitialization(unittest.TestCase):
@@ -152,6 +153,25 @@ class TestGetStockFromTicker(unittest.TestCase):
             last_updated=datetime.now(timezone.utc)
         )
         self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        
+        # Mock stock events response
+        mock_events = [
+            StockEvent(
+                stock=mock_external_stock,
+                type=EventType.EARNINGS_ANNOUNCEMENT,
+                date=datetime(2025, 11, 15, tzinfo=timezone.utc),
+                last_updated=datetime.now(timezone.utc),
+                source='Alpha Vantage'
+            ),
+            StockEvent(
+                stock=mock_external_stock,
+                type=EventType.DIVIDEND_EX,
+                date=datetime(2025, 11, 20, tzinfo=timezone.utc),
+                last_updated=datetime.now(timezone.utc),
+                source='Alpha Vantage'
+            )
+        ]
+        self.mock_external_api.getStockEventDatesFromStock.return_value = mock_events
         self.mock_db.execute_update.return_value = 1
         
         stock = self.service.get_stock_from_ticker(ticker='msft')
@@ -160,8 +180,14 @@ class TestGetStockFromTicker(unittest.TestCase):
         self.assertEqual(stock.name, 'Microsoft Corporation')
         # Should call external API
         self.mock_external_api.getStockInfoFromSymbol.assert_called_once_with(symbol='MSFT')
-        # Should cache the result
-        self.mock_db.execute_update.assert_called_once()
+        # Should cache the stock result
+        self.assertEqual(self.mock_db.execute_update.call_count, 3)  # 1 for stock + 2 for events
+        
+        # Verify stock events were fetched
+        self.mock_external_api.getStockEventDatesFromStock.assert_called_once()
+        call_args = self.mock_external_api.getStockEventDatesFromStock.call_args
+        self.assertEqual(call_args[1]['stock'].symbol, 'MSFT')
+        self.assertEqual(call_args[1]['event_types'], list(EventType))
     
     def test_get_stock_external_api_normalizes_symbol(self):
         '''Test external API response symbol is normalized to uppercase.'''
@@ -174,6 +200,7 @@ class TestGetStockFromTicker(unittest.TestCase):
             last_updated=datetime.now(timezone.utc)
         )
         self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        self.mock_external_api.getStockEventDatesFromStock.return_value = []
         self.mock_db.execute_update.return_value = 1
         
         stock = self.service.get_stock_from_ticker(ticker='TSLA')
@@ -191,6 +218,7 @@ class TestGetStockFromTicker(unittest.TestCase):
         mock_external_stock.symbol = 'AMZN'
         mock_external_stock.last_updated = None
         self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        self.mock_external_api.getStockEventDatesFromStock.return_value = []
         self.mock_db.execute_update.return_value = 1
         
         stock = self.service.get_stock_from_ticker(ticker='AMZN')
@@ -245,15 +273,225 @@ class TestGetStockFromTicker(unittest.TestCase):
             last_updated=datetime.now(timezone.utc)
         )
         self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        self.mock_external_api.getStockEventDatesFromStock.return_value = []
         self.mock_db.execute_update.return_value = 1
         
         self.service.get_stock_from_ticker(ticker='GOOGL')
         
         # Verify UPSERT query was used
-        call_args = self.mock_db.execute_update.call_args
+        call_args = self.mock_db.execute_update.call_args_list[0]
         query = call_args[1]['query']
         self.assertIn('ON CONFLICT', query)
         self.assertIn('DO UPDATE', query)
+    
+    def test_get_stock_fetches_all_event_types(self):
+        '''Test that all event types are requested from external API.'''
+        self.mock_db.execute_query.return_value = []
+        
+        mock_external_stock = Stock(
+            name='Apple Inc.',
+            symbol='AAPL',
+            last_updated=datetime.now(timezone.utc)
+        )
+        self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        self.mock_external_api.getStockEventDatesFromStock.return_value = []
+        self.mock_db.execute_update.return_value = 1
+        
+        self.service.get_stock_from_ticker(ticker='AAPL')
+        
+        # Verify all event types were requested
+        call_args = self.mock_external_api.getStockEventDatesFromStock.call_args
+        requested_event_types = call_args[1]['event_types']
+        self.assertEqual(requested_event_types, list(EventType))
+        self.assertEqual(len(requested_event_types), 6)  # All 6 event types
+    
+    def test_get_stock_stores_stock_events(self):
+        '''Test that stock events are stored in database.'''
+        self.mock_db.execute_query.return_value = []
+        
+        mock_external_stock = Stock(
+            name='Netflix Inc.',
+            symbol='NFLX',
+            last_updated=datetime.now(timezone.utc)
+        )
+        self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        
+        # Mock multiple stock events
+        mock_events = [
+            StockEvent(
+                stock=mock_external_stock,
+                type=EventType.EARNINGS_ANNOUNCEMENT,
+                date=datetime(2025, 11, 15, tzinfo=timezone.utc),
+                last_updated=datetime.now(timezone.utc),
+                source='Alpha Vantage'
+            ),
+            StockEvent(
+                stock=mock_external_stock,
+                type=EventType.DIVIDEND_EX,
+                date=datetime(2025, 11, 20, tzinfo=timezone.utc),
+                last_updated=datetime.now(timezone.utc),
+                source='Alpha Vantage'
+            ),
+            StockEvent(
+                stock=mock_external_stock,
+                type=EventType.STOCK_SPLIT,
+                date=datetime(2025, 12, 1, tzinfo=timezone.utc),
+                last_updated=datetime.now(timezone.utc),
+                source='Alpha Vantage'
+            )
+        ]
+        self.mock_external_api.getStockEventDatesFromStock.return_value = mock_events
+        self.mock_db.execute_update.return_value = 1
+        
+        self.service.get_stock_from_ticker(ticker='NFLX')
+        
+        # Verify execute_update was called for stock + each event
+        # 1 call for stock, 3 calls for events = 4 total
+        self.assertEqual(self.mock_db.execute_update.call_count, 4)
+        
+        # Verify event queries use UPSERT pattern
+        event_calls = self.mock_db.execute_update.call_args_list[1:]  # Skip first (stock) call
+        for event_call in event_calls:
+            query = event_call[1]['query']
+            self.assertIn('stock_events', query)
+            self.assertIn('ON CONFLICT', query)
+    
+    def test_get_stock_event_parameters_correct(self):
+        '''Test that stock events are stored with correct parameters.'''
+        self.mock_db.execute_query.return_value = []
+        
+        mock_external_stock = Stock(
+            name='Meta Platforms Inc.',
+            symbol='META',
+            last_updated=datetime.now(timezone.utc)
+        )
+        self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        
+        event_date = datetime(2025, 11, 25, tzinfo=timezone.utc)
+        mock_event = StockEvent(
+            stock=mock_external_stock,
+            type=EventType.DIVIDEND_PAYMENT,
+            date=event_date,
+            last_updated=datetime.now(timezone.utc),
+            source='Alpha Vantage'
+        )
+        self.mock_external_api.getStockEventDatesFromStock.return_value = [mock_event]
+        self.mock_db.execute_update.return_value = 1
+        
+        self.service.get_stock_from_ticker(ticker='META')
+        
+        # Get the event insert call (second call)
+        event_call = self.mock_db.execute_update.call_args_list[1]
+        params = event_call[1]['params']
+        
+        # Verify all parameters are correct
+        self.assertEqual(params['stock_ticker'], 'META')
+        self.assertEqual(params['type'], EventType.DIVIDEND_PAYMENT.value)
+        self.assertEqual(params['event_date'], event_date)
+        self.assertEqual(params['source'], 'Alpha Vantage')
+        self.assertIsInstance(params['last_updated'], datetime)
+    
+    def test_get_stock_event_last_updated_is_current_time(self):
+        '''Test that stock events use current time for last_updated, not event's last_updated.'''
+        self.mock_db.execute_query.return_value = []
+        
+        mock_external_stock = Stock(
+            name='Adobe Inc.',
+            symbol='ADBE',
+            last_updated=datetime.now(timezone.utc)
+        )
+        self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        
+        # Event with old last_updated timestamp
+        old_timestamp = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        mock_event = StockEvent(
+            stock=mock_external_stock,
+            type=EventType.EARNINGS_ANNOUNCEMENT,
+            date=datetime(2025, 11, 30, tzinfo=timezone.utc),
+            last_updated=old_timestamp,
+            source='Alpha Vantage'
+        )
+        self.mock_external_api.getStockEventDatesFromStock.return_value = [mock_event]
+        self.mock_db.execute_update.return_value = 1
+        
+        before_call = datetime.now(timezone.utc)
+        self.service.get_stock_from_ticker(ticker='ADBE')
+        after_call = datetime.now(timezone.utc)
+        
+        # Get the event insert call
+        event_call = self.mock_db.execute_update.call_args_list[1]
+        params = event_call[1]['params']
+        
+        # Verify last_updated is current time, not the event's old timestamp
+        self.assertGreaterEqual(params['last_updated'], before_call)
+        self.assertLessEqual(params['last_updated'], after_call)
+        self.assertNotEqual(params['last_updated'], old_timestamp)
+    
+    def test_get_stock_events_fetch_error(self):
+        '''Test handling of errors when fetching stock events.'''
+        self.mock_db.execute_query.return_value = []
+        
+        mock_external_stock = Stock(
+            name='Oracle Corporation',
+            symbol='ORCL',
+            last_updated=datetime.now(timezone.utc)
+        )
+        self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        self.mock_external_api.getStockEventDatesFromStock.side_effect = Exception('API error')
+        self.mock_db.execute_update.return_value = 1
+        
+        with self.assertRaises(Exception) as context:
+            self.service.get_stock_from_ticker(ticker='ORCL')
+        
+        self.assertIn('Failed to fetch or store stock events', str(context.exception))
+    
+    def test_get_stock_events_store_error(self):
+        '''Test handling of errors when storing stock events.'''
+        self.mock_db.execute_query.return_value = []
+        
+        mock_external_stock = Stock(
+            name='Salesforce Inc.',
+            symbol='CRM',
+            last_updated=datetime.now(timezone.utc)
+        )
+        self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        
+        mock_event = StockEvent(
+            stock=mock_external_stock,
+            type=EventType.EARNINGS_ANNOUNCEMENT,
+            date=datetime(2025, 12, 1, tzinfo=timezone.utc),
+            last_updated=datetime.now(timezone.utc),
+            source='Alpha Vantage'
+        )
+        self.mock_external_api.getStockEventDatesFromStock.return_value = [mock_event]
+        
+        # First call succeeds (stock insert), second call fails (event insert)
+        self.mock_db.execute_update.side_effect = [1, Exception('Database error')]
+        
+        with self.assertRaises(Exception) as context:
+            self.service.get_stock_from_ticker(ticker='CRM')
+        
+        self.assertIn('Failed to fetch or store stock events', str(context.exception))
+    
+    def test_get_stock_with_no_events(self):
+        '''Test handling when stock has no events.'''
+        self.mock_db.execute_query.return_value = []
+        
+        mock_external_stock = Stock(
+            name='New Company Inc.',
+            symbol='NEWCO',
+            last_updated=datetime.now(timezone.utc)
+        )
+        self.mock_external_api.getStockInfoFromSymbol.return_value = mock_external_stock
+        self.mock_external_api.getStockEventDatesFromStock.return_value = []
+        self.mock_db.execute_update.return_value = 1
+        
+        stock = self.service.get_stock_from_ticker(ticker='NEWCO')
+        
+        # Should still succeed and return the stock
+        self.assertEqual(stock.symbol, 'NEWCO')
+        # Only one execute_update call for the stock itself
+        self.assertEqual(self.mock_db.execute_update.call_count, 1)
 
 
 if __name__ == '__main__':

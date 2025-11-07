@@ -1,6 +1,8 @@
 
 from datetime import datetime, timezone
+from typing import List
 from uuid import UUID
+from src.models.stock_event_model import EventType
 from src.database.adapter_factory import DatabaseAdapterFactory
 from src.models.stock_model import Stock
 from src.external.external_api_facade import ExternalApiFacade
@@ -120,5 +122,63 @@ class StocksService:
             # Log error but still return the stock data since we fetched it successfully
             raise Exception(f'Failed to persist stock data: {str(exc)}') from exc
         
+        # Ask for this stock for its events from the external API
+        try:
+            # Ask for all event_types
+            event_types = list(EventType)
+            self.upsert_stock_events(stock=stock_to_store, event_types=event_types)
+        except Exception as exc:
+            # Log error but don't fail the entire operation
+            # The stock data was already cached successfully
+            raise Exception(f'Failed to fetch or store stock events: {str(exc)}') from exc
+        
         return stock_to_store
+        
+    def upsert_stock_events(self, stock: Stock, event_types: List[EventType]) -> bool:
+        '''
+        Upserts stock event dates for a given stock into the database.
+            
+        Parameters:
+            stock : Stock
+                The stock domain object for which event dates should be fetched and stored.
+            event_types : List[EventType]
+                A list of event types to request from the external API (e.g., dividends, splits, earnings).
+        
+        Returns:
+            bool
+                True if the method completes without raising an exception.
+        '''
+        try:
+    
+            stock_events = self.external_api.getStockEventDatesFromStock(stock=stock, event_types=event_types)
+            
+            # Insert or update stock events in the database
+            # Uses UPSERT pattern to handle both new inserts and updates
+            insert_events_query = """
+                INSERT INTO stock_events (stock_ticker, type, event_date, last_updated, source)
+                VALUES (:stock_ticker, :type, :event_date, :last_updated, :source)
+                ON CONFLICT (id) DO UPDATE
+                SET event_date = EXCLUDED.event_date,
+                    last_updated = EXCLUDED.last_updated,
+                    source = EXCLUDED.source
+            """
+            
+            # Insert each stock event into the database
+            for event in stock_events:
+                self.db.execute_update(
+                    query=insert_events_query,
+                    params={
+                        'stock_ticker': stock.symbol,
+                        'type': event.type.value,
+                        'event_date': event.date,
+                        'last_updated': datetime.now(timezone.utc),
+                        'source': event.source,
+                    },
+                )
+        except Exception as exc:
+            # Log error but don't fail the entire operation
+            # The stock data was already cached successfully
+            raise Exception(f'Failed to fetch or store stock events: {str(exc)}') from exc
+        
+        return True
         
