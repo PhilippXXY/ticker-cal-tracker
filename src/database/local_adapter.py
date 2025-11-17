@@ -42,8 +42,7 @@ class LocalDatabaseAdapter(DatabaseAdapterBaseDefinition):
         self.password = password
         
         # Create connection string
-        self.connection_string = (f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}")
-
+        self.connection_string = (f"postgresql://{user}:{password}@{host}:{port}/{database}")
  
         # Create database engine with connection pooling
         self.engine = create_engine(
