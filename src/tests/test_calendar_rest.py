@@ -21,7 +21,14 @@ class TestCalendarRest(unittest.TestCase):
         self.app.register_blueprint(calendar_bp, url_prefix='/calendar')
         self.client = self.app.test_client()
         self.test_token = 'test_secure_token_abc123'
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
     
+    def tearDown(self):
+        self.jwt_patcher.stop()
+
     @patch('src.api.routes.calendar_rest.get_calendar_service')
     def test_get_calendar_success(self, mock_get_service):
         '''Test successful calendar retrieval.'''
@@ -180,6 +187,13 @@ class TestCalendarWatchlistRotateToken(unittest.TestCase):
         self.client = self.app.test_client()
         self.test_watchlist_id = '3fa85f64-5717-4562-b3fc-2c963f66afa6'
         self.test_user_id = '1234abcd-5678-1234-9012-abcdef123456'
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.calendar_rest.auth_utils.get_current_user_id')
     @patch('src.api.routes.calendar_rest.get_calendar_service')
@@ -302,6 +316,13 @@ class TestCalendarWatchlistGetToken(unittest.TestCase):
         self.client = self.app.test_client()
         self.test_watchlist_id = '3fa85f64-5717-4562-b3fc-2c963f66afa6'
         self.test_user_id = '1234abcd-5678-1234-9012-abcdef123456'
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.calendar_rest.auth_utils.get_current_user_id')
     @patch('src.api.routes.calendar_rest.get_calendar_service')

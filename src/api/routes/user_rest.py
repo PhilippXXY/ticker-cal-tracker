@@ -5,6 +5,7 @@ User management endpoints.
 from http import HTTPStatus
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required
 
 from src.app.utils import auth_utils
 from src.app.services.user_service import UserService
@@ -39,6 +40,7 @@ class UserProfile(MethodView):
     User profile endpoint.
     '''
 
+    @jwt_required()
     @user_bp.doc(
         summary='Get user profile',
         description='Retrieve the profile information for the authenticated user.',
@@ -64,6 +66,7 @@ class UserProfile(MethodView):
 
         return user
 
+    @jwt_required()
     @user_bp.doc(
         summary='Update user profile',
         description='Update the email address for the authenticated user.',

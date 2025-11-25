@@ -1,8 +1,10 @@
+
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from typing import Any, Dict, Generator, Iterable, List, Mapping, Optional
+from src.models.user_model import User
 
 class DatabaseAdapterBaseDefinition(ABC):
     '''
@@ -98,10 +100,7 @@ class DatabaseAdapterBaseDefinition(ABC):
         Returns:
             Total number of rows affected
         '''
-        total_affected = 0
-        for params in params_list:
-            total_affected += self.execute_update(query = query, params=params)
-        return total_affected
+        pass
         
     @abstractmethod
     def health_check(self) -> bool:
@@ -119,5 +118,28 @@ class DatabaseAdapterBaseDefinition(ABC):
         Close database connections and clean up resources.
         
         Should be called when shutting down the application.
+        '''
+        pass
+
+    @abstractmethod
+    def save_user(self, user: User) -> None:
+        '''
+        Save a user to the database.
+        
+        Args:
+            user: User object to save
+        '''
+        pass
+
+    @abstractmethod
+    def get_user_by_username(self, username: str) -> Optional[User]:
+        '''
+        Retrieve a user by username.
+        
+        Args:
+            username: Username to search for
+            
+        Returns:
+            User object if found, None otherwise
         '''
         pass

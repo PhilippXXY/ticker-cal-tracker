@@ -1,17 +1,17 @@
-from uuid import UUID, uuid4
+from flask_jwt_extended import get_jwt_identity
 
 
-def get_current_user_id() -> UUID:
+def get_current_user_id() -> int:
     '''
-    Get the current authenticated user's ID.
+    Get the current authenticated user's ID from JWT token.
     
     Returns:
-        UUID: The user ID of the currently authenticated user.
+        int: The user ID of the currently authenticated user.
         
-    Note:
-        This is a placeholder implementation that returns a random UUID.
-        TODO: Implement proper authentication logic.
+    Raises:
+        RuntimeError: If called outside of a JWT-protected route.
     '''
-    placeholder_user_id = uuid4()
-    user_id = placeholder_user_id
-    return user_id
+    user_id = get_jwt_identity()
+    if user_id is None:
+        raise RuntimeError("No authenticated user found. This endpoint requires JWT authentication.")
+    return int(user_id)

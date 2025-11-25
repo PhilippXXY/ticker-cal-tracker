@@ -26,7 +26,7 @@ class WatchlistService:
     def create_watchlist(
         self,
         *,
-        user_id: UUID,
+        user_id: int,
         name: str,
         watchlist_settings: Dict[EventType, bool],
     ) -> Dict[str, Any]:
@@ -40,8 +40,8 @@ class WatchlistService:
             ValueError: If inputs are invalid.
             Exception: If watchlist creation fails.
         '''
-        if not isinstance(user_id, UUID):
-            raise ValueError('user_id must be a UUID instance.')
+        if not isinstance(user_id, int):
+            raise ValueError('user_id must be an integer.')
         if not name:
             raise ValueError('Watchlist name is required.')
         if not watchlist_settings:
@@ -119,7 +119,7 @@ class WatchlistService:
         except Exception as exc:
             raise Exception(f'Failed to create watchlist: {str(exc)}') from exc
 
-    def get_all_watchlists_for_user(self, *, user_id: UUID) -> List[Dict[str, Any]]:
+    def get_all_watchlists_for_user(self, *, user_id: int) -> List[Dict[str, Any]]:
         '''
         Get all watchlists for a user.
 
@@ -130,8 +130,8 @@ class WatchlistService:
             TypeError: If user_id is not a UUID.
             Exception: If fetch fails.
         '''
-        if not isinstance(user_id, UUID):
-            raise TypeError('user_id must be a UUID instance.')
+        if not isinstance(user_id, int):
+            raise TypeError('user_id must be an integer.')
 
         query = """
             SELECT
@@ -162,7 +162,7 @@ class WatchlistService:
         except Exception as exc:
             raise Exception(f'Failed to fetch watchlists for user: {str(exc)}') from exc
 
-    def get_watchlist_by_id(self, *, user_id: UUID, watchlist_id: UUID) -> Optional[Dict[str, Any]]:
+    def get_watchlist_by_id(self, *, user_id: int, watchlist_id: UUID) -> Optional[Dict[str, Any]]:
         '''
         Get a specific watchlist by ID.
 
@@ -200,7 +200,7 @@ class WatchlistService:
         except Exception as exc:
             raise Exception(f'Failed to fetch watchlist: {str(exc)}') from exc
 
-    def get_watchlist_stocks(self, *, user_id: UUID, watchlist_id: UUID) -> List[Dict[str, Any]]:
+    def get_watchlist_stocks(self, *, user_id: int, watchlist_id: UUID) -> List[Dict[str, Any]]:
         '''
         Get all stocks tracked by a watchlist.
 
@@ -235,7 +235,7 @@ class WatchlistService:
     def update_watchlist(
         self,
         *,
-        user_id: UUID,
+        user_id: int,
         watchlist_id: UUID,
         name: Optional[str] = None,
         watchlist_settings: Optional[Dict[EventType, bool]] = None,
@@ -293,7 +293,7 @@ class WatchlistService:
 
         return updated
 
-    def add_stock_to_watchlist(self, *, user_id: UUID, watchlist_id: UUID, stock_ticker: str) -> bool:
+    def add_stock_to_watchlist(self, *, user_id: int, watchlist_id: UUID, stock_ticker: str) -> bool:
         '''
         Add a stock to a watchlist.
 
@@ -336,7 +336,7 @@ class WatchlistService:
         except Exception as exc:
             raise Exception(f'Failed to add stock to watchlist: {str(exc)}') from exc
 
-    def delete_watchlist(self, *, user_id: UUID, watchlist_id: UUID) -> bool:
+    def delete_watchlist(self, *, user_id: int, watchlist_id: UUID) -> bool:
         '''
         Delete a watchlist.
 
@@ -360,7 +360,7 @@ class WatchlistService:
         except Exception as exc:
             raise Exception(f'Failed to delete watchlist: {str(exc)}') from exc
 
-    def remove_stock_to_watchlist(self, *, user_id: UUID, watchlist_id: UUID, stock_ticker: str) -> bool:
+    def remove_stock_to_watchlist(self, *, user_id: int, watchlist_id: UUID, stock_ticker: str) -> bool:
         '''
         Remove a stock from a watchlist.
 

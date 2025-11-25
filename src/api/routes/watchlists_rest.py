@@ -5,6 +5,7 @@ Watchlist management endpoints exposed via Flask-Smorest.
 from http import HTTPStatus
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required
 
 from src.models.stock_event_model import EventType
 import src.app.utils.auth_utils as auth_utils
@@ -62,6 +63,7 @@ class WatchlistCollection(MethodView):
     Collection-level operations for watchlists.
     '''
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='List watchlists',
         description='Retrieve all watchlists that belong to the authenticated user.',
@@ -81,6 +83,7 @@ class WatchlistCollection(MethodView):
         except Exception as exc:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=f'Failed to list watchlists: {str(exc)}')
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='Create watchlist',
         description='Create a new watchlist with optional event filters.',
@@ -122,6 +125,7 @@ class WatchlistDetailResource(MethodView):
     Item-level operations on a specific watchlist.
     '''
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='Retrieve watchlist',
         description='Fetch a single watchlist identified by its UUID.',
@@ -147,6 +151,7 @@ class WatchlistDetailResource(MethodView):
 
         return watchlist
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='Update watchlist',
         description='Update the name or event filters of a specific watchlist.',
@@ -198,6 +203,7 @@ class WatchlistDetailResource(MethodView):
         except Exception as exc:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(exc))
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='Delete watchlist',
         description='Delete the watchlist identified by its UUID.',
@@ -230,6 +236,7 @@ class WatchlistStocksCollection(MethodView):
     Collection operations for stocks tracked in a watchlist.
     '''
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='List watchlist stocks',
         description='Return all stocks currently tracked in the specified watchlist.',
@@ -259,6 +266,7 @@ class WatchlistStockResource(MethodView):
     Item operations on a specific stock relationship in a watchlist.
     '''
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='Follow stock',
         description='Add a stock ticker to the given watchlist.',
@@ -299,6 +307,7 @@ class WatchlistStockResource(MethodView):
             'stock_ticker': normalized_ticker,
         }
 
+    @jwt_required()
     @watchlists_bp.doc(
         summary='Unfollow stock',
         description='Remove a stock ticker from the given watchlist.',

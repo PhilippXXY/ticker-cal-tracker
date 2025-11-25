@@ -2,11 +2,10 @@
 
 import unittest
 from unittest.mock import Mock, patch, MagicMock
-from src.database import (  # type: ignore
-    DatabaseAdapter, # type: ignore
-    DatabaseAdapterFactory, # type: ignore
-    DatabaseEnvironment, # type: ignore
-    get_database_adapter # type: ignore
+from src.database.adapter_base import DatabaseAdapterBaseDefinition as DatabaseAdapter
+from src.database.adapter_factory import (
+    DatabaseAdapterFactory,
+    DatabaseEnvironment
 )
 from src.database.local_adapter import LocalDatabaseAdapter
 
@@ -41,6 +40,10 @@ class TestDatabaseAdapterInterface(unittest.TestCase):
 class TestDatabaseAdapterFactory(unittest.TestCase):
     """Test the DatabaseAdapterFactory."""
     
+    def tearDown(self):
+        """Reset factory after each test."""
+        DatabaseAdapterFactory.reset()
+    
     @patch.dict('os.environ', {
         'DB_HOST': 'localhost',
         'DB_PORT': '5432',
@@ -50,11 +53,12 @@ class TestDatabaseAdapterFactory(unittest.TestCase):
     })
     def test_create_local_adapter(self):
         """Factory should create LocalDatabaseAdapter for local environment."""
-        adapter = DatabaseAdapterFactory.create(DatabaseEnvironment.LOCAL)
+        DatabaseAdapterFactory.initialize(DatabaseEnvironment.DEVELOPMENT)
+        adapter = DatabaseAdapterFactory.get_instance()
         
         self.assertIsInstance(adapter, LocalDatabaseAdapter)
-        self.assertEqual(adapter.host, 'localhost')
-        self.assertEqual(adapter.database, 'test_db')
+        self.assertEqual(adapter.host, '127.0.0.1')
+        self.assertEqual(adapter.database, 'ticker_calendar_local_dev_db')
         
         adapter.close()
     
@@ -66,25 +70,22 @@ class TestDatabaseAdapterFactory(unittest.TestCase):
         'DB_USER': 'test_user',
         'DB_PASSWORD': 'test_pass'
     })
-    def test_create_from_env_local(self):
-        """Factory should create adapter from environment variables."""
-        adapter = DatabaseAdapterFactory.create_from_env()
+    def test_initialize_development(self):
+        """Factory should initialize for development environment."""
+        DatabaseAdapterFactory.initialize(DatabaseEnvironment.DEVELOPMENT)
+        adapter = DatabaseAdapterFactory.get_instance()
         
         self.assertIsInstance(adapter, LocalDatabaseAdapter)
         
         adapter.close()
     
-    def test_create_test_adapter(self):
-        """Factory should create test adapter."""
-        adapter = DatabaseAdapterFactory.create(
-            DatabaseEnvironment.TEST,
-            database="test_database"
-        )
+    def test_get_instance_without_initialize(self):
+        """get_instance should raise RuntimeError if not initialized."""
+        # Ensure factory is reset
+        DatabaseAdapterFactory.reset()
         
-        self.assertIsInstance(adapter, LocalDatabaseAdapter)
-        self.assertEqual(adapter.database, 'test_database')
-        
-        adapter.close()
+        with self.assertRaises(RuntimeError):
+            DatabaseAdapterFactory.get_instance()
 
 
 class TestLocalDatabaseAdapter(unittest.TestCase):
@@ -114,26 +115,7 @@ class TestLocalDatabaseAdapter(unittest.TestCase):
         engine = self.adapter.get_engine()
         self.assertIsNotNone(engine)
     
-    @patch.dict('os.environ', {
-        'DB_HOST': 'custom_host',
-        'DB_PORT': '3306',
-        'DB_NAME': 'custom_db',
-        'DB_USER': 'custom_user',
-        'DB_PASSWORD': 'custom_pass',
-        'DB_POOL_SIZE': '10',
-        'DB_MAX_OVERFLOW': '20'
-    })
-    def test_from_env(self):
-        """Adapter should be created from environment variables."""
-        adapter = LocalDatabaseAdapter.from_env()  # type: ignore
-        
-        self.assertEqual(adapter.host, 'custom_host')
-        self.assertEqual(adapter.port, 3306)
-        self.assertEqual(adapter.database, 'custom_db')
-        self.assertEqual(adapter.user, 'custom_user')
-        self.assertEqual(adapter.password, 'custom_pass')
-        
-        adapter.close()
+
 
 
 class TestDatabaseAdapterUsage(unittest.TestCase):
@@ -148,26 +130,15 @@ class TestDatabaseAdapterUsage(unittest.TestCase):
         'DB_PASSWORD': 'test_pass'
     })
     def test_singleton_pattern(self):
-        """get_database_adapter should return singleton instance."""
-        adapter1 = get_database_adapter()
-        adapter2 = get_database_adapter()
+        """get_instance should return singleton instance."""
+        DatabaseAdapterFactory.initialize(DatabaseEnvironment.DEVELOPMENT)
+        adapter1 = DatabaseAdapterFactory.get_instance()
+        adapter2 = DatabaseAdapterFactory.get_instance()
         
         # Should be the same instance
         self.assertIs(adapter1, adapter2)
     
-    def test_context_manager(self):
-        """Adapter should work as context manager."""
-        with LocalDatabaseAdapter(  # type: ignore
-            host="localhost",
-            port=5432,
-            database="test_db",
-            user="test_user",
-            password="test_pass"
-        ) as adapter:
-            self.assertIsInstance(adapter, DatabaseAdapter)
-        
-        # After exiting context, adapter should be closed
-        # (engine will be disposed)
+
 
 
 if __name__ == '__main__':

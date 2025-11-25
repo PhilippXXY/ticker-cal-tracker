@@ -114,7 +114,7 @@ class CalendarService:
 
         return ics_content
 
-    def rotate_calendar_token(self, *, user_id: UUID, watchlist_id: UUID) -> str:
+    def rotate_calendar_token(self, *, user_id: int, watchlist_id: UUID) -> str:
         '''
         Generate and update a new calendar token for a watchlist.
         
@@ -129,8 +129,8 @@ class CalendarService:
             ValueError: If user_id or watchlist_id are invalid.
             LookupError: If the watchlist doesn't exist or doesn't belong to the user.
         '''
-        if not isinstance(user_id, UUID):
-            raise ValueError('user_id must be a UUID instance.')
+        if not isinstance(user_id, int):
+            raise ValueError('user_id must be an integer.')
         if not isinstance(watchlist_id, UUID):
             raise ValueError('watchlist_id must be a UUID instance.')
         
@@ -159,7 +159,7 @@ class CalendarService:
         
         return new_token
     
-    def get_calendar_token(self, *, user_id: UUID, watchlist_id: UUID) -> str:
+    def get_calendar_token(self, *, user_id: int, watchlist_id: UUID) -> str:
         '''
         Retrieve the calendar token for a watchlist.
         
@@ -174,8 +174,8 @@ class CalendarService:
             ValueError: If user_id or watchlist_id are invalid.
             LookupError: If the watchlist doesn't exist or doesn't belong to the user.
         '''
-        if not isinstance(user_id, UUID):
-            raise ValueError('user_id must be a UUID instance.')
+        if not isinstance(user_id, int):
+            raise ValueError('user_id must be an integer.')
         if not isinstance(watchlist_id, UUID):
             raise ValueError('watchlist_id must be a UUID instance.')
         

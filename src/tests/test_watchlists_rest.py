@@ -110,6 +110,13 @@ class TestWatchlistCollectionGet(unittest.TestCase):
         
         self.client = self.app.test_client()
         self.user_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')
@@ -172,6 +179,13 @@ class TestWatchlistCollectionPost(unittest.TestCase):
         self.client = self.app.test_client()
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')
@@ -235,6 +249,13 @@ class TestWatchlistDetailGet(unittest.TestCase):
         self.client = self.app.test_client()
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')
@@ -289,6 +310,13 @@ class TestWatchlistDetailPut(unittest.TestCase):
         self.client = self.app.test_client()
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')
@@ -392,6 +420,13 @@ class TestWatchlistDetailDelete(unittest.TestCase):
         self.client = self.app.test_client()
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')
@@ -439,6 +474,13 @@ class TestWatchlistStocksCollectionGet(unittest.TestCase):
         self.client = self.app.test_client()
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')
@@ -497,6 +539,13 @@ class TestWatchlistStockPost(unittest.TestCase):
         self.client = self.app.test_client()
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')
@@ -558,6 +607,13 @@ class TestWatchlistStockDelete(unittest.TestCase):
         self.client = self.app.test_client()
         self.user_id = uuid4()
         self.watchlist_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.watchlists_rest.get_watchlist_service')
     @patch('src.api.routes.watchlists_rest.auth_utils.get_current_user_id')

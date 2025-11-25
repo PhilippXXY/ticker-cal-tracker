@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Optional, Any, Dict
 from uuid import UUID
+from datetime import datetime, timezone
 from src.models.user_model import User
 from src.database.adapter_factory import DatabaseAdapterFactory
 
@@ -18,12 +19,12 @@ class UserService:
         self.db = DatabaseAdapterFactory.get_instance()
         
         
-    def get_user(self, *, user_id: UUID) -> User:
+    def get_user(self, *, user_id: int) -> User:
         '''
         Retrieve user information by user ID.
         
         Args:
-            user_id: The UUID of the user to retrieve.
+            user_id: The integer ID of the user to retrieve.
             
         Returns:
             User object containing user details.
@@ -55,8 +56,13 @@ class UserService:
             user_data = results_list[0]
             
             # Create and return a User object from the query results
+            # Note: We provide dummy values for username and password_hash as they are not returned by this query
+            # but are required by the User model. In a real app, we might want to fetch them or make them optional.
             return User(
+                id=user_id,
                 email=user_data['email'],
+                username=user_data['email'].split('@')[0], # Derived username
+                password_hash='<hidden>', # Placeholder
                 created_at=user_data['created_at'],
             )
         except Exception as e:
@@ -66,24 +72,24 @@ class UserService:
     def update_user(
         self,
         *,
-        user_id: UUID,
+        user_id: int,
         email: Optional[str] = None,) -> bool:
         '''
         Update user information.
         
         Args:
-            user_id: The UUID of the user to update.
+            user_id: The integer ID of the user to update.
             email: Optional new email address for the user.
             
         Returns:
             True if user was updated, False if no changes were made.
             
         Raises:
-            TypeError: If user_id is not a UUID instance.
+            TypeError: If user_id is not an integer.
             Exception: If database update fails.
         '''
-        if not isinstance(user_id, UUID):
-            raise TypeError("user_id must be a UUID instance")
+        if not isinstance(user_id, int):
+            raise TypeError("user_id must be an integer")
         
         if email is None:
             return False

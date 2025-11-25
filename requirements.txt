@@ -1,13 +1,15 @@
 # Web Framework
 Flask==3.0.3
-flask-smorest==0.44.0
-marshmallow==3.21.1
+flask-smorest==0.46.2
+Flask-JWT-Extended==4.7.1
+marshmallow==4.1.0
 # System
 python-dotenv==1.0.1
+requests==2.31.0
 # External API
-finnhub-python==2.4.21
+finnhub-python==2.4.25
 # Database
 SQLAlchemy==2.0.36        # ORM + engine management for PostgreSQL adapters
 psycopg2-binary==2.9.9    # PostgreSQL driver bundled with native libs for local dev
 # Background Tasks
-APScheduler==3.10.4
+APScheduler==3.11.1

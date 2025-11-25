@@ -396,8 +396,8 @@ class TestLocalDatabaseAdapterWithRealSchema(unittest.TestCase):
         """Test inserting and querying a user."""
         # Insert a test user
         affected = self.adapter.execute_update(
-            query="INSERT INTO users (email, password) VALUES (:email, :password)",
-            params={'email': self.test_email, 'password': 'hashed_password'}
+            query="INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :password)",
+            params={'username': 'test_user', 'email': self.test_email, 'password': 'hashed_password'}
         )
         
         self.assertEqual(affected, 1)
@@ -467,8 +467,8 @@ class TestLocalDatabaseAdapterWithRealSchema(unittest.TestCase):
         """Test that user preferences are created and cascade on delete."""
         # Insert user
         self.adapter.execute_update(
-            query="INSERT INTO users (email, password) VALUES (:email, :password)",
-            params={'email': self.test_email, 'password': 'hashed_password'}
+            query="INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :password)",
+            params={'username': 'test_user', 'email': self.test_email, 'password': 'hashed_password'}
         )
         
         # Get user id
