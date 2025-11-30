@@ -24,8 +24,7 @@ class AuthService:
         # Hash password
         password_hash = generate_password_hash(password)
         
-        # Create user object (assuming User model has these fields)
-        # Note: You might need to adjust this based on your actual User model and DB adapter
+        # Create user object 
         new_user = User(
             username=username,
             email=email,
