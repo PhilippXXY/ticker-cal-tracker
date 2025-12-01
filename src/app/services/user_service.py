@@ -35,6 +35,7 @@ class UserService:
         '''
         query = """
             SELECT
+                u.username,
                 u.email,
                 u.created_at
             FROM users u
@@ -61,7 +62,7 @@ class UserService:
             return User(
                 id=user_id,
                 email=user_data['email'],
-                username=user_data['email'].split('@')[0], # Derived username
+                username=user_data['username'],
                 password_hash='<hidden>', # Placeholder
                 created_at=user_data['created_at'],
             )

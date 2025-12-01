@@ -132,3 +132,21 @@ class ExternalApiFacade:
         
         # Alpha Vantage is the only provider for event data
         return self.alpha_vantage.getStockEventDatesFromStock(stock=stock, event_types=event_types)
+
+    def get_quote(self, *, symbol: str) -> dict:
+        '''
+        Get real-time quote data for a symbol.
+        
+        Args:
+            symbol: Stock ticker symbol
+            
+        Returns:
+            Dict with 'c' (current price) and 'dp' (percent change)
+        '''
+        # Try Finnhub first
+        try:
+            return self.finnhub.get_quote(symbol=symbol)
+        except Exception as e:
+
+            logger.warning(f"Finnhub quote failed for {symbol}: {e}")
+            return None

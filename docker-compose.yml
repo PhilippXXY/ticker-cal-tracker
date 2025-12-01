@@ -11,6 +11,7 @@ services:
       POSTGRES_USER: ticker_dev
       POSTGRES_PASSWORD: dev_password_123
       POSTGRES_DB: ticker_calendar_local_dev_db
+
     # Expose PostgreSQL port to host machine
     ports:
       - "5432:5432"
@@ -26,11 +27,7 @@ services:
       - ./database/local/seed_data.sql:/seed_data.sql
     # Health check to ensure database is ready before accepting connections
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ticker_dev -d ticker_calendar_local_dev_db",
-        ]
+      test: [ "CMD-SHELL", "pg_isready -U ticker_dev -d ticker_calendar_local_dev_db" ]
       interval: 10s
       timeout: 5s
       retries: 5

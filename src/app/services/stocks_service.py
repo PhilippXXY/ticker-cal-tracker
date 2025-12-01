@@ -1,11 +1,14 @@
-
 from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
+import logging
+
 from src.models.stock_event_model import EventType
 from src.database.adapter_factory import DatabaseAdapterFactory
 from src.models.stock_model import Stock
 from src.external.external_api_facade import ExternalApiFacade
+
+logger = logging.getLogger(__name__)
 
 class StocksService:
     '''
@@ -68,40 +71,31 @@ class StocksService:
             record = results[0]
             last_updated = record.get('last_updated')
             
-            # Handle various timestamp formats from database
-            # Some adapters return strings, others return datetime objects
-            if isinstance(last_updated, str):
-                try:
-                    last_updated = datetime.fromisoformat(last_updated)
-                except ValueError:
-                    # Fallback if ISO format parsing fails
-                    last_updated = datetime.now(timezone.utc)
-            elif not isinstance(last_updated, datetime):
-                # Handle None or other unexpected types
-                last_updated = datetime.now(timezone.utc)
-            
+            # Fetch fresh quote data even if stock is cached
+            quote = None
+            try:
+                quote = self.external_api.get_quote(symbol=record['ticker'])
+            except Exception as e:
+                logger.warning(f"Failed to fetch fresh quote for cached stock {record['ticker']}: {e}")
+                pass # Ignore quote errors for cached stocks
+
             return Stock(
                 name=record['name'],
                 symbol=record['ticker'],
                 last_updated=last_updated,
+                current_price=quote.get('c') if quote else None,
+                change_percent=quote.get('dp') if quote else None,
             )
-        
+
         # Cache miss: fetch stock data from external API providers
         try:
             stock = self.external_api.getStockInfoFromSymbol(symbol=normalized_ticker)
         except Exception as exc:
             raise Exception(f'Failed to fetch stock from external providers: {str(exc)}') from exc
-        
-        # Normalize the stock data for storage
-        stock_to_store = Stock(
-            name=stock.name,
-            symbol=stock.symbol.upper(),
-            last_updated=stock.last_updated if isinstance(stock.last_updated, datetime) else datetime.now(timezone.utc),
-        )
-        
-        # Cache the fetched stock data for future lookups
-        # Uses UPSERT pattern to handle both new inserts and updates
-        insert_query = """
+            
+        # Store the fetched stock data in the local database
+        # Uses UPSERT pattern (INSERT ... ON CONFLICT DO UPDATE) to handle race conditions
+        upsert_query = """
             INSERT INTO stocks (ticker, name, last_updated)
             VALUES (:ticker, :name, :last_updated)
             ON CONFLICT (ticker) DO UPDATE
@@ -111,28 +105,28 @@ class StocksService:
         
         try:
             self.db.execute_update(
-                query=insert_query,
+                query=upsert_query,
                 params={
-                    'ticker': stock_to_store.symbol,
-                    'name': stock_to_store.name,
-                    'last_updated': stock_to_store.last_updated,
+                    'ticker': stock.symbol,
+                    'name': stock.name,
+                    'last_updated': stock.last_updated,
                 },
             )
         except Exception as exc:
-            # Log error but still return the stock data since we fetched it successfully
-            raise Exception(f'Failed to persist stock data: {str(exc)}') from exc
-        
+            # Log error but don't fail the entire operation since we have the stock object
+            logger.error(f"Failed to cache stock data: {exc}")
+
         # Ask for this stock for its events from the external API
         try:
             # Ask for all event_types
             event_types = list(EventType)
-            self.upsert_stock_events(stock=stock_to_store, event_types=event_types)
+            self.upsert_stock_events(stock=stock, event_types=event_types)
         except Exception as exc:
             # Log error but don't fail the entire operation
             # The stock data was already cached successfully
-            raise Exception(f'Failed to fetch or store stock events: {str(exc)}') from exc
+            logger.error(f"Failed to fetch or store stock events: {exc}")
         
-        return stock_to_store
+        return stock
         
     def upsert_stock_events(self, stock: Stock, event_types: List[EventType]) -> bool:
         '''
@@ -181,4 +175,3 @@ class StocksService:
             raise Exception(f'Failed to fetch or store stock events: {str(exc)}') from exc
         
         return True
-        

@@ -12,15 +12,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 # 2. Force load the .env file
 load_dotenv()
 
-# Set dummy API keys for development if not present
-if not os.getenv('API_KEY_ALPHA_VANTAGE'):
-    os.environ['API_KEY_ALPHA_VANTAGE'] = 'dummy_alpha_vantage_key'
-if not os.getenv('API_KEY_FINNHUB'):
-    os.environ['API_KEY_FINNHUB'] = 'dummy_finnhub_key'
+# 2. Force load the .env file
+load_dotenv()
+
+
+
 
 from flask import Flask
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 from src.api.routes.auth_rest import auth_bp
 from src.api.routes.calendar_rest import calendar_bp
@@ -54,6 +55,7 @@ def create_app():
     
     # Initialize Flask
     app = Flask(__name__)
+    CORS(app)
     
     # Configuration for Flask-Smorest
     app.config.update({

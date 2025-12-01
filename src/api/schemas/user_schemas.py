@@ -5,6 +5,10 @@ class UserSchema(Schema):
     '''
     Schema for user representation.
     '''
+    username = fields.Str(
+        required=True,
+        metadata={'description': 'User username.', 'example': 'johndoe'},
+    )
     email = fields.Email(
         required=True,
         metadata={'description': 'User email address.', 'example': 'user@example.com'},

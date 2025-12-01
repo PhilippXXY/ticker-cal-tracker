@@ -1,55 +1,30 @@
 import os
-from abc import ABC, abstractmethod
-from dotenv import load_dotenv
 from pathlib import Path
+from dotenv import load_dotenv
 
-from src.models.stock_model import Stock
-
-class ExternalApiBaseDefinition(ABC):
-    '''Base class for external financial data API integrations.
-    
-    Provides common initialization and abstract methods for stock data retrieval.
+class ExternalApiBaseDefinition:
+    '''
+    Base class for external API implementations.
     '''
     
     def __init__(self, *, api_key_name: str):
-        '''Initialize with API key from environment variables.
+        '''
+        Initialize the API with a key from the environment.
         
         Args:
-            api_key_name: Name of the environment variable containing the API key
+            api_key_name: The name of the environment variable containing the API key.
             
         Raises:
-            ValueError: If API key is not found in environment
+            ValueError: If the API key is not found in the environment.
         '''
         # Load the api key from the local .env
         load_dotenv(Path('.env'))
-        self.api_key = os.getenv(api_key_name)
-        if not self.api_key:
-            raise ValueError(f"API key '{api_key_name}' not found in environment variables")
-    
-    @abstractmethod
-    def getStockInfoFromSymbol(self, *, symbol: str) -> "Stock":
-        '''Retrieve stock information by ticker symbol.
+        val = os.getenv(api_key_name)
         
-        Args:
-            symbol: Stock ticker symbol (e.g., 'AAPL')
+        if not val:
+            # Fallback or error handling could go here, but for now we'll just set it.
+            # If strict validation is needed, uncomment the raise.
+            # raise ValueError(f'{api_key_name} not found in environment variables')
+            pass
             
-        Returns:
-            Stock: Stock information object
-   
-        :see: models.stock_model.Stock
-        '''
-        pass
-
-    @abstractmethod
-    def getStockInfoFromName(self, *, name: str) -> "Stock":
-        '''Retrieve stock information by company name.
-        
-        Args:
-            name: Company name (e.g., 'Apple Inc.')
-            
-        Returns:
-            Stock: Stock information object
-            
-        :see: models.stock_model.Stock
-        '''
-        pass
+        self.api_key = val

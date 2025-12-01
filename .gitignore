@@ -218,3 +218,16 @@ __marimo__/
 
 # Visual Studio
 .vs/
+# Temporary debug scripts
+check_api.py
+check_hash.py
+debug_db.py
+debug_db_connection.py
+populate_test_data.py
+reset_alice_password.py
+seed_demo_data.py
+trigger_fetch.py
+verify_api.py
+verify_full_cycle.py
+verify_login.py
+backend_*.log

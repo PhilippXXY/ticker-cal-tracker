@@ -11,3 +11,7 @@ class UserLoginSchema(Schema):
 
 class TokenSchema(Schema):
     access_token = fields.String(dump_only=True)
+
+class ChangePasswordSchema(Schema):
+    old_password = fields.String(required=True, load_only=True)
+    new_password = fields.String(required=True, load_only=True)

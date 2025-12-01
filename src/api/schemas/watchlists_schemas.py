@@ -23,6 +23,10 @@ class WatchlistSchema(Schema):
         dump_only=True,
         metadata={'description': 'Timestamp representing when the watchlist was created.', 'example': '2025-10-27T10:30:00Z'},
     )
+    stock_count = fields.Int(
+        dump_only=True,
+        metadata={'description': 'Number of stocks in the watchlist.', 'example': 5},
+    )
     include_earnings_announcement = fields.Bool(
         dump_only=True,
         metadata={'description': 'Indicates if earnings announcements are tracked.', 'example': True},

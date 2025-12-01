@@ -4,6 +4,7 @@ Service layer for managing watchlists and their tracked stocks.
 
 from typing import Any, Dict, List, Optional
 from uuid import UUID
+import sys
 
 import src.app.utils.calendar_utils as calendar_utils
 from src.models.stock_event_model import EventType
@@ -146,10 +147,13 @@ class WatchlistService:
                 ws.include_dividend_payment,
                 ws.include_stock_split,
                 ws.reminder_before,
-                ws.updated_at AS settings_updated_at
+                ws.updated_at AS settings_updated_at,
+                COUNT(f.stock_ticker) AS stock_count
             FROM watchlists w
             LEFT JOIN watchlist_settings ws ON w.id = ws.watchlist_id
+            LEFT JOIN follows f ON w.id = f.watchlist_id
             WHERE w.user_id = :user_id
+            GROUP BY w.id, ws.include_earnings_announcement, ws.include_dividend_ex, ws.include_dividend_declaration, ws.include_dividend_record, ws.include_dividend_payment, ws.include_stock_split, ws.reminder_before, ws.updated_at
             ORDER BY w.created_at DESC
         """
 
@@ -228,7 +232,26 @@ class WatchlistService:
                 query=query,
                 params={'watchlist_id': watchlist_id},
             )
-            return [dict(row) for row in results]
+            
+            stocks_with_prices = []
+            for row in results:
+                try:
+                    # Fetch fresh stock data including price
+                    stock = self.stocks_service.get_stock_from_ticker(ticker=row['ticker'])
+                    stocks_with_prices.append({
+                        'ticker': stock.symbol,
+                        'name': stock.name,
+                        'last_updated': stock.last_updated,
+                        'followed_at': row['followed_at'],
+                        'current_price': stock.current_price,
+                        'change_percent': stock.change_percent
+                    })
+                except Exception as e:
+                    # Fallback to DB data if fetch fails
+                    print(f"Failed to fetch price for {row['ticker']}: {e}")
+                    stocks_with_prices.append(dict(row))
+            
+            return stocks_with_prices
         except Exception as exc:
             raise Exception(f'Failed to fetch watchlist stocks: {str(exc)}') from exc
 
@@ -315,6 +338,7 @@ class WatchlistService:
             raise LookupError(f'Watchlist {watchlist_id} not found or access denied.')
 
         try:
+            sys.stderr.write(f"DEBUG: WatchlistService.add_stock_to_watchlist calling get_stock_from_ticker for {normalized_ticker}\n")
             stock = self.stocks_service.get_stock_from_ticker(ticker=normalized_ticker)
         except Exception as exc:
             raise LookupError(f'Stock {normalized_ticker} not found.') from exc

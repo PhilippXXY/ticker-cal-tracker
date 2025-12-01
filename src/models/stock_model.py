@@ -6,4 +6,5 @@ class Stock:
     name: str
     symbol: str
     last_updated: datetime
-    
+    current_price: float = None
+    change_percent: float = None
