@@ -9,12 +9,7 @@ from dotenv import load_dotenv
 # Fix "No module named src" by adding the root folder to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-# 2. Force load the .env file
 load_dotenv()
-
-# 2. Force load the .env file
-load_dotenv()
-
 
 
 

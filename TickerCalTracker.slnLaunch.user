@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Start Profile",
+    "Projects": [
+      {
+        "Path": "TickerCalTrackerBackend.pyproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "frontend\\TickerCalTrackerFrontend.njsproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
