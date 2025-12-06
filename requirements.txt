@@ -15,3 +15,6 @@
 
 	# Background Tasks
 	APScheduler==3.11.1
+
+	# Stock Price Data
+	yfinance==0.2.49

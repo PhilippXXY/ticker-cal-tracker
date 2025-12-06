@@ -231,3 +231,4 @@ verify_api.py
 verify_full_cycle.py
 verify_login.py
 backend_*.log
+UpgradeLog*.htm

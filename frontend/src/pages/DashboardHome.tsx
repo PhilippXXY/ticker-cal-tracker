@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart2, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { BarChart2, Calendar, TrendingUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { watchlistService } from '../api/services/watchlistService';
 
@@ -10,6 +10,7 @@ const DashboardHome = () => {
     });
 
     const watchlistCount = watchlists?.length || 0;
+    const totalStocks = watchlists?.reduce((sum, watchlist) => sum + (watchlist.stock_count || 0), 0) || 0;
 
     return (
         <div className="space-y-6">
@@ -25,10 +26,6 @@ const DashboardHome = () => {
                         <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg">
                             <BarChart2 size={24} />
                         </div>
-                        <span className="text-green-400 text-sm flex items-center">
-                            <ArrowUpRight size={16} className="mr-1" />
-                            +12%
-                        </span>
                     </div>
                     <h3 className="text-gray-400 text-sm font-medium">Total Watchlists</h3>
                     <p className="text-3xl font-bold text-white">{watchlistCount}</p>
@@ -39,13 +36,9 @@ const DashboardHome = () => {
                         <div className="p-2 bg-purple-500/10 text-purple-400 rounded-lg">
                             <TrendingUp size={24} />
                         </div>
-                        <span className="text-red-400 text-sm flex items-center">
-                            <ArrowDownRight size={16} className="mr-1" />
-                            -2.5%
-                        </span>
                     </div>
                     <h3 className="text-gray-400 text-sm font-medium">Tracked Stocks</h3>
-                    <p className="text-3xl font-bold text-white">0</p>
+                    <p className="text-3xl font-bold text-white">{totalStocks}</p>
                 </div>
 
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">

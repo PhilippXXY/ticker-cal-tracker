@@ -14,7 +14,8 @@
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <LaunchProvider>Web launcher</LaunchProvider>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <WebBrowserUrl></WebBrowserUrl>
+    <WebBrowserUrl>
+    </WebBrowserUrl>
     <WebBrowserPort>5001</WebBrowserPort>
     <Environment>FLASK_APP=src/app/main.py
 FLASK_ENV=development
@@ -62,6 +63,9 @@ API_KEY_FINNHUB=
     <Folder Include="src\external\" />
     <Folder Include="src\models\" />
     <Folder Include="src\tests\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.11" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
