@@ -2,7 +2,7 @@
             - name: FLASK_ENV
               value: "production"
             - name: DB_HOST
-              value: "postgres"   # or whatever host you’ll actually use in GCP
+              value: "postgres"   
             - name: DB_PORT
               value: "5432"
             - name: DB_USER
