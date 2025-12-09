@@ -42,7 +42,7 @@ class TestCreateWatchlist(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService', return_value=self.mock_stocks_service):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     @patch('src.app.utils.calendar_utils.generate_calendar_token')
@@ -90,17 +90,17 @@ class TestCreateWatchlist(unittest.TestCase):
         self.mock_db.execute_update.assert_called_once()
     
     def test_create_watchlist_invalid_user_id(self):
-        '''Test creation fails with non-UUID user_id.'''
+        '''Test creation fails with non-integer user_id.'''
         watchlist_settings = {EventType.EARNINGS_ANNOUNCEMENT: True}
         
         with self.assertRaises(ValueError) as context:
             self.service.create_watchlist(
-                user_id='not-a-uuid',  # type: ignore
+                user_id='not-an-int',  # type: ignore
                 name='Test',
                 watchlist_settings=watchlist_settings,
             )
         
-        self.assertIn('user_id must be a UUID instance', str(context.exception))
+        self.assertIn('user_id must be an integer', str(context.exception))
     
     def test_create_watchlist_empty_name(self):
         '''Test creation fails with empty name.'''
@@ -155,7 +155,7 @@ class TestGetAllWatchlistsForUser(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService'):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
     
     def test_get_all_watchlists_success(self):
         '''Test successful fetch of all watchlists.'''
@@ -196,11 +196,11 @@ class TestGetAllWatchlistsForUser(unittest.TestCase):
         self.assertEqual(len(result), 0)
     
     def test_get_all_watchlists_invalid_user_id(self):
-        '''Test fetch fails with non-UUID user_id.'''
+        '''Test fetch fails with non-integer user_id.'''
         with self.assertRaises(TypeError) as context:
-            self.service.get_all_watchlists_for_user(user_id='not-a-uuid')  # type: ignore
+            self.service.get_all_watchlists_for_user(user_id='not-an-int')  # type: ignore
         
-        self.assertIn('user_id must be a UUID instance', str(context.exception))
+        self.assertIn('user_id must be an integer', str(context.exception))
     
     def test_get_all_watchlists_db_error(self):
         '''Test fetch handles database errors.'''
@@ -223,7 +223,7 @@ class TestGetWatchlistById(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService'):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     def test_get_watchlist_by_id_success(self):
@@ -273,7 +273,7 @@ class TestGetWatchlistStocks(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService'):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     def test_get_watchlist_stocks_success(self):
@@ -346,7 +346,7 @@ class TestUpdateWatchlist(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService'):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     def test_update_watchlist_name_only(self):
@@ -438,7 +438,7 @@ class TestAddStockToWatchlist(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService', return_value=self.mock_stocks_service):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     def test_add_stock_success(self):
@@ -548,7 +548,7 @@ class TestDeleteWatchlist(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService'):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     def test_delete_watchlist_success(self):
@@ -589,7 +589,7 @@ class TestRemoveStockFromWatchlist(unittest.TestCase):
             with patch('src.app.services.watchlists_service.StocksService'):
                 self.service = WatchlistService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     def test_remove_stock_success(self):

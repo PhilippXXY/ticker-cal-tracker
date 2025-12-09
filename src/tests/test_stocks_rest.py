@@ -43,11 +43,17 @@ class TestStocksRestAPI(unittest.TestCase):
         self.mock_get_service = self.service_patcher.start()
         self.mock_service = Mock()
         self.mock_get_service.return_value = self.mock_service
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
     
     def tearDown(self):
         '''Clean up patches.'''
         self.auth_patcher.stop()
+        self.auth_patcher.stop()
         self.service_patcher.stop()
+        self.jwt_patcher.stop()
 
 
 class TestGetStock(TestStocksRestAPI):

@@ -35,6 +35,13 @@ class TestUserProfileGet(unittest.TestCase):
         
         self.client = self.app.test_client()
         self.user_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.user_rest.auth_utils.get_current_user_id')
     @patch('src.api.routes.user_rest.get_user_service')
@@ -46,6 +53,8 @@ class TestUserProfileGet(unittest.TestCase):
         mock_user = User(
             email='test@example.com',
             created_at=datetime.now(timezone.utc),
+            username='testuser',
+            password_hash='hashed_secret'
         )
         mock_service.get_user.return_value = mock_user
         mock_get_service.return_value = mock_service
@@ -109,6 +118,13 @@ class TestUserProfilePut(unittest.TestCase):
         
         self.client = self.app.test_client()
         self.user_id = uuid4()
+        
+        # Mock JWT verification
+        self.jwt_patcher = patch('flask_jwt_extended.view_decorators.verify_jwt_in_request')
+        self.mock_jwt_verify = self.jwt_patcher.start()
+    
+    def tearDown(self):
+        self.jwt_patcher.stop()
     
     @patch('src.api.routes.user_rest.auth_utils.get_current_user_id')
     @patch('src.api.routes.user_rest.get_user_service')
@@ -122,6 +138,8 @@ class TestUserProfilePut(unittest.TestCase):
         updated_user = User(
             email='newemail@example.com',
             created_at=datetime.now(timezone.utc),
+            username='testuser',
+            password_hash='hashed_secret'
         )
         mock_service.get_user.return_value = updated_user
         mock_get_service.return_value = mock_service

@@ -51,7 +51,7 @@ class TestUserServiceIntegration(unittest.TestCase):
     
     def setUp(self):
         '''Set up test data before each test.'''
-        self.test_user_id = uuid4()
+        self.test_user_id = 1
         self.test_users = []
         
         # Create a test user in the database
@@ -72,19 +72,26 @@ class TestUserServiceIntegration(unittest.TestCase):
         if user_id is None:
             user_id = self.test_user_id
         if email is None:
-            email = f'test_{user_id.hex[:8]}@example.com'
+            email = f'test_{user_id}@example.com'
         
+        # Check if user exists first
+        check_query = "SELECT id FROM users WHERE id = :user_id"
+        result = self.adapter.execute_query(query=check_query, params={'user_id': user_id})
+        
+        if result:
+            return user_id
+            
         query = """
-            INSERT INTO users (id, email, password)
-            VALUES (:user_id, :email, :password)
-            ON CONFLICT (id) DO NOTHING
+            INSERT INTO users (id, username, email, password_hash)
+            VALUES (:user_id, :username, :email, :password_hash)
         """
         self.adapter.execute_update(
             query=query,
             params={
                 'user_id': user_id,
+                'username': f'testuser_{user_id}',
                 'email': email,
-                'password': 'test_hash_not_real'
+                'password_hash': 'test_hash_not_real'
             }
         )
         return user_id
@@ -94,12 +101,12 @@ class TestUserServiceIntegration(unittest.TestCase):
         user = self.service.get_user(user_id=self.test_user_id)
         
         self.assertIsNotNone(user)
-        self.assertEqual(user.email, f'test_{self.test_user_id.hex[:8]}@example.com')
+        self.assertEqual(user.email, f'test_{self.test_user_id}@example.com')
         self.assertIsNotNone(user.created_at)
     
     def test_get_user_not_found(self):
         '''Test retrieving a non-existent user.'''
-        non_existent_id = uuid4()
+        non_existent_id = 999
         
         with self.assertRaises(Exception) as context:
             self.service.get_user(user_id=non_existent_id)
@@ -108,7 +115,7 @@ class TestUserServiceIntegration(unittest.TestCase):
     
     def test_update_user_email_success(self):
         '''Test successfully updating user email.'''
-        new_email = f'updated_{self.test_user_id.hex[:8]}@example.com'
+        new_email = f'updated_{self.test_user_id}@example.com'
         
         result = self.service.update_user(
             user_id=self.test_user_id,
@@ -129,7 +136,7 @@ class TestUserServiceIntegration(unittest.TestCase):
     
     def test_update_user_not_found(self):
         '''Test updating a non-existent user.'''
-        non_existent_id = uuid4()
+        non_existent_id = 999
         
         result = self.service.update_user(
             user_id=non_existent_id,
@@ -142,11 +149,11 @@ class TestUserServiceIntegration(unittest.TestCase):
         '''Test update with invalid user_id type.'''
         with self.assertRaises(TypeError) as context:
             self.service.update_user(
-                user_id='not-a-uuid',  # type: ignore
+                user_id='not-an-int',  # type: ignore
                 email='test@example.com',
             )
         
-        self.assertIn('must be a UUID', str(context.exception))
+        self.assertIn('must be an integer', str(context.exception))
     
     def test_get_and_update_user_workflow(self):
         '''Test complete workflow of getting and updating a user.'''
@@ -155,7 +162,7 @@ class TestUserServiceIntegration(unittest.TestCase):
         original_email = user.email
         
         # Update email
-        new_email = f'workflow_{self.test_user_id.hex[:8]}@example.com'
+        new_email = f'workflow_{self.test_user_id}@example.com'
         update_result = self.service.update_user(
             user_id=self.test_user_id,
             email=new_email,

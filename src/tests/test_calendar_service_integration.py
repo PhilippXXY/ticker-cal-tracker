@@ -51,7 +51,7 @@ class TestCalendarServiceIntegration(unittest.TestCase):
     
     def setUp(self):
         '''Set up test data before each test.'''
-        self.test_user_id = uuid4()
+        self.test_user_id = 1  # Use integer ID
         self.test_watchlist_id = uuid4()
         self.test_calendar_token = f'test_token_{uuid4().hex[:16]}'
         self.test_entities = []
@@ -85,19 +85,31 @@ class TestCalendarServiceIntegration(unittest.TestCase):
     
     def _create_test_user(self):
         '''Helper to create a test user.'''
-        query = """
-            INSERT INTO users (id, email, password)
-            VALUES (:user_id, :email, :password)
-            ON CONFLICT (id) DO NOTHING
-        """
-        self.adapter.execute_update(
-            query=query,
-            params={
-                'user_id': self.test_user_id,
-                'email': f'test_{self.test_user_id.hex[:8]}@example.com',
-                'password': 'test_hash'
-            }
-        )
+        # We need to handle potential conflict if ID 1 already exists
+        # In a real integration test, we might want to let the DB assign the ID
+        # But for simplicity here, we'll try to insert with a specific ID or update
+        
+        # First check if user exists
+        check_query = "SELECT id FROM users WHERE id = :user_id"
+        result = self.adapter.execute_query(query=check_query, params={'user_id': self.test_user_id})
+        
+        if result:
+            # User exists, just ensure fields are what we expect if needed
+            pass
+        else:
+            query = """
+                INSERT INTO users (id, username, email, password_hash)
+                VALUES (:user_id, :username, :email, :password_hash)
+            """
+            self.adapter.execute_update(
+                query=query,
+                params={
+                    'user_id': self.test_user_id,
+                    'username': f'testuser_{self.test_user_id}',
+                    'email': f'test_{self.test_user_id}@example.com',
+                    'password_hash': 'test_hash'
+                }
+            )
     
     def _create_test_stock(self, ticker, name):
         '''Helper to create a test stock.'''
@@ -341,7 +353,7 @@ class TestRotateCalendarTokenIntegration(unittest.TestCase):
     
     def setUp(self):
         '''Set up test data before each test.'''
-        self.test_user_id = uuid4()
+        self.test_user_id = 1
         self.test_watchlist_id = uuid4()
         self.test_calendar_token = f'test_token_{uuid4().hex[:16]}'
         
@@ -359,19 +371,23 @@ class TestRotateCalendarTokenIntegration(unittest.TestCase):
     
     def _create_test_user(self):
         '''Helper to create a test user.'''
-        query = """
-            INSERT INTO users (id, email, password)
-            VALUES (:user_id, :email, :password)
-            ON CONFLICT (id) DO NOTHING
-        """
-        self.adapter.execute_update(
-            query=query,
-            params={
-                'user_id': self.test_user_id,
-                'email': f'test_{self.test_user_id.hex[:8]}@example.com',
-                'password': 'test_hash'
-            }
-        )
+        check_query = "SELECT id FROM users WHERE id = :user_id"
+        result = self.adapter.execute_query(query=check_query, params={'user_id': self.test_user_id})
+        
+        if not result:
+            query = """
+                INSERT INTO users (id, username, email, password_hash)
+                VALUES (:user_id, :username, :email, :password_hash)
+            """
+            self.adapter.execute_update(
+                query=query,
+                params={
+                    'user_id': self.test_user_id,
+                    'username': f'testuser_{self.test_user_id}',
+                    'email': f'test_{self.test_user_id}@example.com',
+                    'password_hash': 'test_hash'
+                }
+            )
     
     def _create_test_watchlist(self):
         '''Helper to create a test watchlist.'''
@@ -437,7 +453,7 @@ class TestRotateCalendarTokenIntegration(unittest.TestCase):
     
     def test_rotate_token_wrong_user(self):
         '''Test that rotation fails for wrong user.'''
-        wrong_user_id = uuid4()
+        wrong_user_id = 999
         
         with self.assertRaises(LookupError):
             self.service.rotate_calendar_token(
@@ -510,7 +526,7 @@ class TestGetCalendarTokenIntegration(unittest.TestCase):
     
     def setUp(self):
         '''Set up test data before each test.'''
-        self.test_user_id = uuid4()
+        self.test_user_id = 1
         self.test_watchlist_id = uuid4()
         self.test_calendar_token = f'test_token_{uuid4().hex[:16]}'
         
@@ -528,19 +544,23 @@ class TestGetCalendarTokenIntegration(unittest.TestCase):
     
     def _create_test_user(self):
         '''Helper to create a test user.'''
-        query = """
-            INSERT INTO users (id, email, password)
-            VALUES (:user_id, :email, :password)
-            ON CONFLICT (id) DO NOTHING
-        """
-        self.adapter.execute_update(
-            query=query,
-            params={
-                'user_id': self.test_user_id,
-                'email': f'test_{self.test_user_id.hex[:8]}@example.com',
-                'password': 'test_hash'
-            }
-        )
+        check_query = "SELECT id FROM users WHERE id = :user_id"
+        result = self.adapter.execute_query(query=check_query, params={'user_id': self.test_user_id})
+        
+        if not result:
+            query = """
+                INSERT INTO users (id, username, email, password_hash)
+                VALUES (:user_id, :username, :email, :password_hash)
+            """
+            self.adapter.execute_update(
+                query=query,
+                params={
+                    'user_id': self.test_user_id,
+                    'username': f'testuser_{self.test_user_id}',
+                    'email': f'test_{self.test_user_id}@example.com',
+                    'password_hash': 'test_hash'
+                }
+            )
     
     def _create_test_watchlist(self):
         '''Helper to create a test watchlist.'''
@@ -594,7 +614,7 @@ class TestGetCalendarTokenIntegration(unittest.TestCase):
     
     def test_get_token_wrong_user(self):
         '''Test that retrieval fails for wrong user.'''
-        wrong_user_id = uuid4()
+        wrong_user_id = 999
         
         with self.assertRaises(LookupError):
             self.service.get_calendar_token(

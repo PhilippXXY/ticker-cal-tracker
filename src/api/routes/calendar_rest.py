@@ -2,6 +2,7 @@ from http import HTTPStatus
 from flask import Response, request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required
 
 from src.app.services.calendar_service import CalendarService
 from src.api.schemas.calendar_schemas import CalendarTokenResponseSchema
@@ -89,6 +90,7 @@ class CalendarWatchlist(MethodView):
     Calendar token management for a specific watchlist.
     '''
     
+    @jwt_required()
     @calendar_bp.doc(
         summary='Rotate calendar token',
         description='Generate a new calendar subscription token for the watchlist, invalidating the old one.',
@@ -132,6 +134,7 @@ class CalendarWatchlist(MethodView):
         except Exception as exc:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=f'Failed to rotate calendar token: {str(exc)}')
     
+    @jwt_required()
     @calendar_bp.doc(
         summary='Get calendar URL',
         description='Retrieve the calendar subscription URL for the watchlist.',

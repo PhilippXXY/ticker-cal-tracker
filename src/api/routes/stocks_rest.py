@@ -5,6 +5,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 import src.app.utils.auth_utils as auth_utils
+from flask_jwt_extended import jwt_required
 from src.app.services.stocks_service import StocksService
 from src.api.schemas.stocks_schemas import (
     StockSchema
@@ -34,6 +35,7 @@ class StockResource(MethodView):
     Item-level operations on a specific stock.
     '''
 
+    @jwt_required()
     @stocks_bp.doc(
         summary='Retrieve stock',
         description='Fetch stock information by ticker symbol.',

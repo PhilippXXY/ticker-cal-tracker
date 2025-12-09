@@ -1,11 +1,11 @@
 -- Seed data for development and testing
 -- This provides sample data to test the application
 
--- Insert sample users (passwords are hashed versions of 'password123')
-INSERT INTO users (email, password) VALUES
-    ('alice@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEuUhe'),
-    ('bob@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEuUhe'),
-    ('charlie@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEuUhe');
+-- Insert sample users (passwords are hashed versions of 'password123' using werkzeug)
+INSERT INTO users (username, email, password_hash) VALUES
+    ('alice', 'alice@example.com', 'scrypt:32768:8:1$KsYwG2T0vSt2U4cJ$d1ac8c1567def3d3f29f6a9f4352917ddeb52da4fb3f09610fd12f33edfd35b87e868f501751a932c2336b2ec38e039947a0a921e3b497a11717eadcdeb626a8'),
+    ('bob', 'bob@example.com', 'scrypt:32768:8:1$KsYwG2T0vSt2U4cJ$d1ac8c1567def3d3f29f6a9f4352917ddeb52da4fb3f09610fd12f33edfd35b87e868f501751a932c2336b2ec38e039947a0a921e3b497a11717eadcdeb626a8'),
+    ('charlie', 'charlie@example.com', 'scrypt:32768:8:1$KsYwG2T0vSt2U4cJ$d1ac8c1567def3d3f29f6a9f4352917ddeb52da4fb3f09610fd12f33edfd35b87e868f501751a932c2336b2ec38e039947a0a921e3b497a11717eadcdeb626a8');
 
 -- Insert sample stocks
 INSERT INTO stocks (ticker, name) VALUES
@@ -25,31 +25,22 @@ INSERT INTO stock_events (stock_ticker, type, event_date, source) VALUES
     ('AAPL', 'EARNINGS_ANNOUNCEMENT', '2025-11-15', 'AlphaVantage'),
     ('AAPL', 'DIVIDEND_EX', '2025-11-08', 'AlphaVantage'),
     ('AAPL', 'DIVIDEND_PAYMENT', '2025-11-22', 'AlphaVantage'),
-    
     ('MSFT', 'EARNINGS_ANNOUNCEMENT', '2025-11-20', 'Finnhub'),
     ('MSFT', 'DIVIDEND_EX', '2025-11-14', 'Finnhub'),
     ('MSFT', 'DIVIDEND_PAYMENT', '2025-12-08', 'Finnhub'),
-    
     ('GOOGL', 'EARNINGS_ANNOUNCEMENT', '2025-11-12', 'AlphaVantage'),
-    
     ('AMZN', 'EARNINGS_ANNOUNCEMENT', '2025-11-25', 'Finnhub'),
-    
     ('TSLA', 'EARNINGS_ANNOUNCEMENT', '2025-11-18', 'AlphaVantage'),
     ('TSLA', 'STOCK_SPLIT', '2025-12-01', 'Finnhub'),
-    
     ('META', 'EARNINGS_ANNOUNCEMENT', '2025-11-10', 'AlphaVantage'),
     ('META', 'DIVIDEND_DECLARATION', '2025-11-05', 'AlphaVantage'),
-    
     ('NVDA', 'EARNINGS_ANNOUNCEMENT', '2025-11-22', 'Finnhub'),
     ('NVDA', 'DIVIDEND_EX', '2025-11-12', 'Finnhub'),
-    
     ('JPM', 'DIVIDEND_EX', '2025-11-06', 'AlphaVantage'),
     ('JPM', 'DIVIDEND_RECORD', '2025-11-07', 'AlphaVantage'),
     ('JPM', 'DIVIDEND_PAYMENT', '2025-11-30', 'AlphaVantage'),
-    
     ('V', 'EARNINGS_ANNOUNCEMENT', '2025-11-28', 'Finnhub'),
     ('V', 'DIVIDEND_EX', '2025-11-15', 'Finnhub'),
-    
     ('WMT', 'EARNINGS_ANNOUNCEMENT', '2025-11-16', 'AlphaVantage'),
     ('WMT', 'DIVIDEND_EX', '2025-11-08', 'AlphaVantage');
 

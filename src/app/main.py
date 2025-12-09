@@ -1,9 +1,26 @@
 import logging
 import sys
 import atexit
+import sys
+import os
+from dotenv import load_dotenv  
+
+
+# Fix "No module named src" by adding the root folder to the path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+# 2. Force load the .env file
+load_dotenv()
+
+# Set dummy API keys for development if not present
+if not os.getenv('API_KEY_ALPHA_VANTAGE'):
+    os.environ['API_KEY_ALPHA_VANTAGE'] = 'dummy_alpha_vantage_key'
+if not os.getenv('API_KEY_FINNHUB'):
+    os.environ['API_KEY_FINNHUB'] = 'dummy_finnhub_key'
 
 from flask import Flask
 from flask_smorest import Api
+from flask_jwt_extended import JWTManager
 
 from src.api.routes.auth_rest import auth_bp
 from src.api.routes.calendar_rest import calendar_bp
@@ -46,10 +63,26 @@ def create_app():
         'OPENAPI_URL_PREFIX': '/',
         'OPENAPI_SWAGGER_UI_PATH': '/docs',
         'OPENAPI_SWAGGER_UI_URL': 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/',
+        'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY', 'super-secret-key-change-this'),  
+        'API_SPEC_OPTIONS': {
+            'security': [{"bearerAuth": []}],
+            'components': {
+                "securitySchemes": {
+                    "bearerAuth": {
+                        "type": "http",
+                        "scheme": "bearer",
+                        "bearerFormat": "JWT",
+                    }
+                }
+            },
+        }
     })
 
     # Initialize Flask-Smorest API
     api = Api(app)
+    
+    # Initialize JWT
+    jwt = JWTManager(app)
 
     # Register the API blueprints
     api.register_blueprint(auth_bp, url_prefix='/api/auth')

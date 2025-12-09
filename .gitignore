@@ -215,3 +215,6 @@ __marimo__/
 *.db
 *.sqlite
 *.sqlite3
+
+# Visual Studio
+.vs/

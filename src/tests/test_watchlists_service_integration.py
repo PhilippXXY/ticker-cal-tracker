@@ -6,7 +6,7 @@ IMPORTANT: These tests will modify data in the database.
 
 import unittest
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, Mock
 from uuid import uuid4, UUID
 from datetime import datetime, timezone
 
@@ -45,11 +45,23 @@ class TestWatchlistServiceIntegration(unittest.TestCase):
         # Initialize the DatabaseAdapterFactory for integration tests
         DatabaseAdapterFactory.initialize(environment=DatabaseEnvironment.DEVELOPMENT)
         
+        # Mock ExternalApiFacade to avoid API key requirements
+        # This must be done BEFORE WatchlistService is instantiated
+        cls.external_api_patcher = patch('src.app.services.stocks_service.ExternalApiFacade')
+        cls.mock_external_api_class = cls.external_api_patcher.start()
+        cls.mock_external_api = cls.mock_external_api_class.return_value
+        
+        # Configure mock to return dummy data if called
+        mock_stock = Stock(name='Test Stock', symbol='TEST', last_updated=datetime.now())
+        cls.mock_external_api.getStockInfoFromSymbol.return_value = mock_stock
+        cls.mock_external_api.getStockEventDatesFromStock.return_value = []
+        
         cls.service = WatchlistService()
     
     @classmethod
     def tearDownClass(cls):
         '''Clean up database connection.'''
+        cls.external_api_patcher.stop()
         cls.adapter.close()
     
     def setUp(self):
@@ -87,17 +99,26 @@ class TestWatchlistServiceIntegration(unittest.TestCase):
     
     def _create_test_user(self):
         '''Helper to create a test user in the database.'''
+        # Use integer ID if possible, but UUID is used in other tests.
+        # Wait, WatchlistService expects int user_id now.
+        # self.test_user_id is initialized as uuid4() in setUp.
+        # I MUST change it to int.
+        
+        # Override self.test_user_id to be an integer
+        self.test_user_id = 12345 # Arbitrary integer ID
+        
         query = """
-            INSERT INTO users (id, email, password)
-            VALUES (:user_id, :email, :password)
+            INSERT INTO users (id, username, email, password_hash)
+            VALUES (:user_id, :username, :email, :password_hash)
             ON CONFLICT (id) DO NOTHING
         """
         self.adapter.execute_update(
             query=query,
             params={
                 'user_id': self.test_user_id,
-                'email': f'test_{self.test_user_id.hex[:8]}@example.com',
-                'password': 'test_hash_not_real'
+                'username': f'test_user_{self.test_user_id}',
+                'email': f'test_{self.test_user_id}@example.com',
+                'password_hash': 'test_hash_not_real'
             }
         )
     
@@ -125,6 +146,11 @@ class TestWatchlistServiceIntegration(unittest.TestCase):
             symbol=ticker,
             last_updated=datetime.now(timezone.utc)
         )
+        # We need to patch the instance on self.service.stocks_service
+        # But since we patched ExternalApiFacade, get_stock_from_ticker calls it.
+        # However, get_stock_from_ticker logic is complex (cache check etc).
+        # It's better to patch get_stock_from_ticker directly on the instance.
+        
         with patch.object(self.service.stocks_service, 'get_stock_from_ticker', return_value=mock_stock):
             return self.service.add_stock_to_watchlist(
                 user_id=user_id,
@@ -383,22 +409,23 @@ class TestWatchlistServiceIntegration(unittest.TestCase):
     
     def test_watchlist_isolation_between_users(self):
         '''Test that watchlists are isolated between different users.'''
-        user1_id = uuid4()
-        user2_id = uuid4()
+        user1_id = 1001
+        user2_id = 1002
         
         # Create test users
         for user_id in [user1_id, user2_id]:
             query = """
-                INSERT INTO users (id, email, password)
-                VALUES (:user_id, :email, :password)
+                INSERT INTO users (id, username, email, password_hash)
+                VALUES (:user_id, :username, :email, :password_hash)
                 ON CONFLICT (id) DO NOTHING
             """
             self.adapter.execute_update(
                 query=query,
                 params={
                     'user_id': user_id,
-                    'email': f'test_{user_id.hex[:8]}@example.com',
-                    'password': 'test_hash_not_real'
+                    'username': f'test_user_{user_id}',
+                    'email': f'test_{user_id}@example.com',
+                    'password_hash': 'test_hash_not_real'
                 }
             )
         

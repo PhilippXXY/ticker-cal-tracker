@@ -239,7 +239,7 @@ class TestRotateCalendarToken(unittest.TestCase):
         with patch('src.app.services.calendar_service.DatabaseAdapterFactory.get_instance', return_value=self.mock_db):
             self.service = CalendarService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
     
     @patch('src.app.utils.calendar_utils.generate_calendar_token')
@@ -289,7 +289,7 @@ class TestRotateCalendarToken(unittest.TestCase):
         
         with self.assertRaises(LookupError):
             self.service.rotate_calendar_token(
-                user_id=uuid4(),  # Different user
+                user_id=999,  # Different user
                 watchlist_id=self.watchlist_id
             )
     
@@ -297,11 +297,11 @@ class TestRotateCalendarToken(unittest.TestCase):
         '''Test ValueError raised for invalid user_id type.'''
         with self.assertRaises(ValueError) as context:
             self.service.rotate_calendar_token(
-                user_id='not-a-uuid', # pyright: ignore[reportArgumentType]
+                user_id='not-an-int', # pyright: ignore[reportArgumentType]
                 watchlist_id=self.watchlist_id
             )
         
-        self.assertIn('user_id must be a UUID', str(context.exception))
+        self.assertIn('user_id must be an integer', str(context.exception))
     
     def test_rotate_token_invalid_watchlist_id(self):
         '''Test ValueError raised for invalid watchlist_id type.'''
@@ -354,7 +354,7 @@ class TestGetCalendarToken(unittest.TestCase):
         with patch('src.app.services.calendar_service.DatabaseAdapterFactory.get_instance', return_value=self.mock_db):
             self.service = CalendarService()
         
-        self.user_id = uuid4()
+        self.user_id = 1
         self.watchlist_id = uuid4()
         self.test_token = 'existing_token_abc123'
     
@@ -395,7 +395,7 @@ class TestGetCalendarToken(unittest.TestCase):
         
         with self.assertRaises(LookupError):
             self.service.get_calendar_token(
-                user_id=uuid4(),  # Different user
+                user_id=999,  # Different user
                 watchlist_id=self.watchlist_id
             )
     
@@ -403,11 +403,11 @@ class TestGetCalendarToken(unittest.TestCase):
         '''Test ValueError raised for invalid user_id type.'''
         with self.assertRaises(ValueError) as context:
             self.service.get_calendar_token(
-                user_id='not-a-uuid', # pyright: ignore[reportArgumentType]
+                user_id='not-an-int', # pyright: ignore[reportArgumentType]
                 watchlist_id=self.watchlist_id
             )
         
-        self.assertIn('user_id must be a UUID', str(context.exception))
+        self.assertIn('user_id must be an integer', str(context.exception))
     
     def test_get_token_invalid_watchlist_id(self):
         '''Test ValueError raised for invalid watchlist_id type.'''

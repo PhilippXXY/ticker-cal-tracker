@@ -5,7 +5,6 @@ Unit tests for UserService.
 
 import unittest
 from unittest.mock import Mock, patch
-from uuid import uuid4
 from datetime import datetime, timezone, timedelta
 
 from src.app.services.user_service import UserService
@@ -37,7 +36,7 @@ class TestGetUser(unittest.TestCase):
         with patch('src.app.services.user_service.DatabaseAdapterFactory.get_instance', return_value=self.mock_db):
             self.service = UserService()
         
-        self.user_id = uuid4()
+        self.user_id = 12345
     
     def test_get_user_success_without_preferences(self):
         '''Test successful user retrieval without preferences.'''
@@ -86,7 +85,7 @@ class TestUpdateUser(unittest.TestCase):
         with patch('src.app.services.user_service.DatabaseAdapterFactory.get_instance', return_value=self.mock_db):
             self.service = UserService()
         
-        self.user_id = uuid4()
+        self.user_id = 12345
     
     def test_update_user_email_success(self):
         '''Test successful email update.'''
@@ -116,11 +115,11 @@ class TestUpdateUser(unittest.TestCase):
         '''Test update fails with invalid user_id type.'''
         with self.assertRaises(TypeError) as context:
             self.service.update_user(
-                user_id='not-a-uuid',  # type: ignore
+                user_id='not-an-int',  # type: ignore
                 email='test@example.com',
             )
         
-        self.assertIn('must be a UUID', str(context.exception))
+        self.assertIn('must be an integer', str(context.exception))
         self.mock_db.execute_update.assert_not_called()
     
     def test_update_user_no_rows_affected(self):
