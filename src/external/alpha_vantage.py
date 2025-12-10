@@ -336,10 +336,13 @@ class AlphaVantage(ExternalApiBaseDefinition):
                                 # Parse date string to datetime object
                                 date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
                                 # Create for each item a StockEvent
+                                # dividend_type[1] is EventType, needs proper type annotation
+                                event_type = dividend_type[1]
+                                assert isinstance(event_type, EventType)
                                 result_items.append(
                                     StockEvent(
                                         stock=stock,
-                                        type=dividend_type[1],
+                                        type=event_type,
                                         date=date,
                                         last_updated=datetime.now(timezone.utc),
                                         source=self.source
