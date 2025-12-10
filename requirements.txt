@@ -16,3 +16,5 @@ psycopg2-binary==2.9.9    # PostgreSQL driver bundled with native libs for local
 APScheduler==3.11.1
 # Type Check
 mypy>=1.5.0
+# Linter
+ruff==0.14.8

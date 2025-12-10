@@ -1,7 +1,6 @@
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from datetime import datetime, timezone
 from src.app.background.tasks import update_stale_stock_events
 
 logger = logging.getLogger(__name__)

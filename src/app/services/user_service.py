@@ -1,7 +1,4 @@
-from datetime import timedelta
-from typing import Optional, Any, Dict
-from uuid import UUID
-from datetime import datetime, timezone
+from typing import Optional
 from src.models.user_model import User
 from src.database.adapter_factory import DatabaseAdapterFactory
 
@@ -97,8 +94,7 @@ class UserService:
         try:
             updated = False
             
-            if email is not None:
-                params: Dict[str, Any] = {'user_id': user_id}                
+            if email is not None:              
 
                 update_query = """
                     UPDATE users

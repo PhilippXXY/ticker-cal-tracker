@@ -25,7 +25,7 @@ class Register(MethodView):
             return {"message": "User registered successfully"}, HTTPStatus.CREATED
         except ValueError as e:
             abort(HTTPStatus.CONFLICT, message=str(e))
-        except Exception as e:
+        except Exception:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="An error occurred during registration")
 
 @auth_bp.route('/login')

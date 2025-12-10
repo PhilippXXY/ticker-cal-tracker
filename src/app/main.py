@@ -1,10 +1,20 @@
 import logging
 import sys
 import atexit
-import sys
 import os
 from dotenv import load_dotenv  
 
+from flask import Flask
+from flask_smorest import Api
+from flask_jwt_extended import JWTManager
+
+from src.api.routes.auth_rest import auth_bp
+from src.api.routes.calendar_rest import calendar_bp
+from src.api.routes.stocks_rest import stocks_bp
+from src.api.routes.user_rest import user_bp
+from src.api.routes.watchlists_rest import watchlists_bp
+from src.database.adapter_factory import DatabaseAdapterFactory, parse_environment_from_args
+from src.app.background.scheduler import TaskScheduler
 
 # Fix "No module named src" by adding the root folder to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -18,17 +28,6 @@ if not os.getenv('API_KEY_ALPHA_VANTAGE'):
 if not os.getenv('API_KEY_FINNHUB'):
     os.environ['API_KEY_FINNHUB'] = 'dummy_finnhub_key'
 
-from flask import Flask
-from flask_smorest import Api
-from flask_jwt_extended import JWTManager
-
-from src.api.routes.auth_rest import auth_bp
-from src.api.routes.calendar_rest import calendar_bp
-from src.api.routes.stocks_rest import stocks_bp
-from src.api.routes.user_rest import user_bp
-from src.api.routes.watchlists_rest import watchlists_bp
-from src.database.adapter_factory import DatabaseAdapterFactory, parse_environment_from_args
-from src.app.background.scheduler import TaskScheduler
 
 def create_app():
     """
@@ -82,7 +81,7 @@ def create_app():
     api = Api(app)
     
     # Initialize JWT
-    jwt = JWTManager(app)
+    JWTManager(app)
 
     # Register the API blueprints
     api.register_blueprint(auth_bp, url_prefix='/api/auth')

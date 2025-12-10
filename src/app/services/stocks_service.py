@@ -1,7 +1,6 @@
 
 from datetime import datetime, timezone
 from typing import List
-from uuid import UUID
 from src.models.stock_event_model import EventType
 from src.database.adapter_factory import DatabaseAdapterFactory
 from src.models.stock_model import Stock

@@ -18,7 +18,6 @@ Commands:
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 
 # Database configuration (matches docker-compose.yml)
@@ -366,7 +365,7 @@ def print_connection_info():
     '''Print database connection information'''
     print()
     print_info("Connection Details:")
-    print(f"  Host:     localhost")
+    print("  Host:     localhost")
     print(f"  Port:     {DB_PORT}")
     print(f"  Database: {DB_NAME}")
     print(f"  User:     {DB_USER}")

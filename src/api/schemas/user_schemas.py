@@ -1,5 +1,5 @@
 from marshmallow import Schema, fields
-from marshmallow.validate import Email, Length
+from marshmallow.validate import Email
 
 class UserSchema(Schema):
     '''

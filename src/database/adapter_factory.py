@@ -1,4 +1,3 @@
-import os
 import logging
 from enum import Enum
 from typing import Optional
