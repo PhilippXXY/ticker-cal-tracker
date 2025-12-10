@@ -44,12 +44,13 @@ def create_app():
     try:
         db_adapter = DatabaseAdapterFactory.get_instance()
         if not db_adapter.health_check():
-            logging.error("Database health check failed!")
-            sys.exit(1)
-        logging.info(f"Database connection established successfully in {db_environment.value} mode")
+            logging.error("Database health check failed! Starting without DB.")
+            db_adapter = None
+        else:
+            logging.info(f"Database connection established successfully in {db_environment.value} mode")
     except Exception as e:
         logging.error(f"Failed to initialize database: {e}")
-        sys.exit(1)
+        db_adapter = None
     
     # Initialize Flask
     app = Flask(__name__)
@@ -57,7 +58,7 @@ def create_app():
     # Configuration for Flask-Smorest
     app.config.update({
         'API_TITLE': 'Ticker Calendar Tracker API',
-        'API_VERSION': '0.1.3',
+        'API_VERSION': '0.1.4',
         'OPENAPI_VERSION': '3.0.3',
         'OPENAPI_URL_PREFIX': '/',
         'OPENAPI_SWAGGER_UI_PATH': '/docs',
@@ -121,5 +122,10 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(
+        host='0.0.0.0',
+        port=port,
+        debug=False,
+    )
     
