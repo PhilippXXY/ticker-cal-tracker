@@ -3,11 +3,6 @@ Stock schemas for request/response validation and documentation.
 '''
 
 from marshmallow import Schema, fields
-'''
-Stock schemas for request/response validation and documentation.
-'''
-
-from marshmallow import Schema, fields
 from marshmallow.validate import Length
 
 class StockSchema(Schema):
