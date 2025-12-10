@@ -1,0 +1,60 @@
+# Docker Compose configuration for local development database
+# This runs a PostgreSQL database in a container for cross-platform compatibility
+services:
+  postgres:
+    # PostgreSQL 16 Alpine - lightweight official image
+    image: postgres:16-alpine
+    # Container name for easy reference in docker commands
+    container_name: ticker_calendar_local_dev_db
+    # Database credentials (local development only - NOT for production)
+    environment:
+      POSTGRES_USER: ticker_dev
+      POSTGRES_PASSWORD: dev_password_123
+      POSTGRES_DB: ticker_calendar_local_dev_db
+
+    # Expose PostgreSQL port to host machine
+    ports:
+      - "5432:5432"
+    # Mount points:
+    # - postgres_data: Persistent storage for database files
+    # - init.sql: Runs on first startup to create schema and seed data
+    # - schema.sql: Production schema (referenced by init.sql)
+    # - seed_data.sql: Test data for local development (referenced by init.sql)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/local/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/schema.sql:/schema.sql
+      - ./database/local/seed_data.sql:/seed_data.sql
+    # Health check to ensure database is ready before accepting connections
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ticker_dev -d ticker_calendar_local_dev_db",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  api:
+    build: .
+    container_name: ticker_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ticker_dev
+      DB_PASSWORD: dev_password_123
+      DB_NAME: ticker_calendar_local_dev_db
+      API_KEY_ALPHA_VANTAGE: DUMMY
+      API_KEY_FINNHUB: DUMMY
+    ports:
+      - "5001:5001"
+    command: ["sh", "-c", "sleep 10 && python -m src.app.main"]
+
+# Named volume for persistent database storage
+# Data persists even when container is removed (unless volume is deleted)
+volumes:
+  postgres_data:
+    driver: local

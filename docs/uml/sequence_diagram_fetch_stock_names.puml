@@ -1,0 +1,39 @@
+@startuml sequence_diagram_fetch_stock_names
+title Fetch Stock Names - Sequence Diagram
+
+actor User
+participant "StocksREST" as REST
+participant "StocksService" as SVC
+participant "ExternalApiFacade" as EXT
+database "SQL Database" as DB
+
+User -> REST: GET /api/stocks/search?query=AAPL
+
+
+== Validate Query ==
+REST -> REST: Validate query parameter
+
+== Search Local Database ==
+REST -> DB: SELECT ticker, name, last_updated\nFROM stocks\nWHERE ticker ILIKE '%' || :query || '%'\n   OR name ILIKE '%' || :query || '%'\nLIMIT 10
+
+DB --> REST: local_results[]
+
+alt local results found
+  REST --> User: 200 OK\n{ stocks: local_results }
+else no local results and valid ticker format
+  == Fetch from External API ==
+  REST -> SVC: get_stock_from_ticker(ticker=query)
+  
+  SVC -> DB: SELECT ticker, name, last_updated\nFROM stocks WHERE ticker = :ticker
+  DB --> SVC: None (cache miss)
+  
+  SVC -> EXT: getStockInfoFromSymbol(symbol=query)
+  EXT --> SVC: Stock
+  
+  SVC -> DB: INSERT INTO stocks\n(ticker, name, last_updated)\nVALUES (...)\nON CONFLICT (ticker) DO UPDATE
+  
+  SVC --> REST: Stock
+  REST --> User: 200 OK\n{ stocks: [new_stock] }
+end
+
+@enduml

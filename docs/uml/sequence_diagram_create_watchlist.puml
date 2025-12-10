@@ -1,0 +1,38 @@
+@startuml sequence_diagram_create_watchlist
+title Create Watchlist - Sequence Diagram
+
+actor User
+participant "WatchlistsREST" as REST
+participant "WatchlistService" as SVC
+database "SQL Database" as DB
+
+User -> REST: POST /api/watchlists\n{ name, include_earnings_announcement, include_dividend_ex, ... }
+
+== Authentication & Validation ==
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate payload
+REST -> REST: _extract_watchlist_settings(payload)
+
+== Create Watchlist ==
+REST -> SVC: create_watchlist(\n  user_id,\n  name,\n  watchlist_settings)
+
+SVC -> SVC: Validate inputs
+SVC -> SVC: Generate calendar_token
+
+== Insert Watchlist ==
+SVC -> DB: INSERT INTO watchlists\n(user_id, name, calendar_token)\nVALUES (:user_id, :name, :calendar_token)\nRETURNING id
+DB --> SVC: watchlist_id
+
+== Insert Watchlist Settings ==
+SVC -> DB: INSERT INTO watchlist_settings\n(watchlist_id, include_earnings_announcement,\ninclude_dividend_ex, ...)\nVALUES (:watchlist_id, :settings...)
+DB --> SVC: Success
+
+== Retrieve Created Watchlist ==
+SVC -> SVC: get_watchlist_by_id(user_id, watchlist_id)
+SVC -> DB: SELECT w.*, ws.*\nFROM watchlists w\nLEFT JOIN watchlist_settings ws\nWHERE w.id = :watchlist_id
+DB --> SVC: watchlist with settings
+
+SVC --> REST: watchlist dict
+REST --> User: 201 Created\n{ id, name, calendar_token, settings }
+
+@enduml

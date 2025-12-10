@@ -1,0 +1,32 @@
+@startuml sequence_diagram_create_user
+title Create User - Sequence Diagram
+
+actor User
+participant "AuthREST" as REST
+database "SQL Database" as DB
+
+User -> REST: POST /api/auth/signup\n{ email, password }
+
+== Validation & Preparation ==
+REST -> REST: Validate email format
+REST -> REST: Validate password strength
+REST -> REST: password_hash = hash_password(password)
+
+== Email Uniqueness Check ==
+REST -> DB: SELECT 1 FROM users\nWHERE email = :email
+DB --> REST: exists or None
+
+alt email already exists
+  REST --> User: 409 Conflict\n{ message: "Email already registered" }
+else email available
+  == Create User ==
+  REST -> DB: INSERT INTO users\n(id, email, password)\nVALUES (uuid_generate_v4(), :email, :password_hash)\nRETURNING id, email, created_at
+  DB --> REST: new_user
+  
+  == Generate Authentication Token ==
+  REST -> REST: token = auth_utils.generate_jwt(\n  user_id,\n  email)
+  
+  REST --> User: 201 Created\n{\n  token,\n  user: { id, email, created_at }\n}
+end
+
+@enduml
