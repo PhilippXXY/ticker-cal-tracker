@@ -20,4 +20,4 @@ EXPOSE 5001
 ENV PYTHONUNBUFFERED=1 \
     FLASK_ENV=production
 
-CMD ["python", "-m", "src.app.main"]
+CMD ["python", "-m", "src.app.main", "--deployment"]
