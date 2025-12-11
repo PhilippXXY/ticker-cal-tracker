@@ -1,3 +1,8 @@
+# Update User Profile
+
+This diagram illustrates how a user can update their profile information, specifically their email address. The system validates the new email, updates the database, and returns the updated user profile.
+
+```puml
 @startuml sequence_diagram_update_user_preference_settings
 title Update User Profile - Sequence Diagram
 
@@ -40,3 +45,4 @@ else no rows updated
 end
 
 @enduml
+```

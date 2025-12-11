@@ -1,3 +1,8 @@
+# Create User
+
+This diagram illustrates the user registration flow where a new user signs up by providing a username, email, and password. The system validates the username for uniqueness, hashes the password for security, and stores the new user in the database.
+
+```puml
 @startuml sequence_diagram_create_user
 title Create User - Sequence Diagram
 
@@ -34,3 +39,4 @@ else username available
 end
 
 @enduml
+```

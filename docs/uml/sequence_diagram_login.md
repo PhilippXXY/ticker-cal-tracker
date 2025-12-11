@@ -1,3 +1,8 @@
+# User Login
+
+This diagram shows the authentication flow when a user logs in with their username and password. The system validates credentials, verifies the password hash, and generates a JWT access token upon successful authentication.
+
+```puml
 @startuml sequence_diagram_login
 title User Login - Sequence Diagram
 
@@ -40,3 +45,4 @@ else user found
 end
 
 @enduml
+```

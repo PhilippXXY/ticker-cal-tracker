@@ -1,3 +1,8 @@
+# Application Class Diagram
+
+This diagram provides a comprehensive overview of the Ticker Calendar Tracker application architecture, showing the relationships between domain models, database schema, services, and external integrations. It illustrates how the system manages users, watchlists, stock data, and calendar functionality through a layered architecture pattern.
+
+```puml
 @startuml class_diagram_application
 title Ticker Calendar Tracker - Application Class Diagram
 
@@ -237,3 +242,4 @@ StockEvent o-- Stock : contains
 StockEvent o-- EventType : has
 
 @enduml
+```

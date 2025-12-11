@@ -1,0 +1,39 @@
+# Rotate Calendar Token
+
+This diagram illustrates the security feature of rotating a watchlist's calendar token. The system generates a new unique token, updates the database, and returns the new token to invalidate the old calendar URL.
+
+```puml
+@startuml sequence_diagram_rotate_watchlist_calendar_token
+title Rotate Watchlist Calendar Token - Sequence Diagram
+
+actor User
+participant "CalendarREST" as REST
+participant "CalendarService" as SVC
+database "SQL Database" as DB
+
+User -> REST: POST /api/calendar/{watchlist_id}
+
+== Authentication & Validation ==
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate watchlist_id is UUID
+
+== Rotate Token ==
+REST -> SVC: rotate_calendar_token(\n  user_id,\n  watchlist_id)
+
+== Generate New Token ==
+SVC -> SVC: calendar_utils.generate_calendar_token()
+
+== Update Calendar Token ==
+SVC -> DB: UPDATE watchlists\nSET calendar_token = :new_token\nWHERE id = :watchlist_id\nAND user_id = :user_id\nRETURNING calendar_token
+DB --> SVC: new_token or None
+
+alt watchlist not found or unauthorized
+  SVC --> REST: LookupError
+  REST --> User: 404 Not Found
+else token updated
+  SVC --> REST: new_token
+  REST --> User: 200 OK\n{ calendar_token: "..." }
+end
+
+@enduml
+```

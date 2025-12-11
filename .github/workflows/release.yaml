@@ -101,6 +101,13 @@ jobs:
           files: docker-image-${{ steps.version.outputs.version }}.tar.gz
           draft: false
           prerelease: false
+      
+  deploy-docs:
+    needs: release-from-pr
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/mkdocs-push.yaml
+    permissions:
+      contents: write
 
   deploy-to-cloud-run:
     needs: release-from-pr
