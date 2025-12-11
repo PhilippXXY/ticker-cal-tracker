@@ -4,8 +4,11 @@ title Ticker Calendar Tracker - Application Class Diagram
 ' Domain Models
 package "Models" {
   class User {
+    +username: string
     +email: string
+    +password_hash: string
     +created_at: datetime
+    +id: integer
   }
 
   class Stock {
@@ -37,9 +40,10 @@ package "Models" {
 ' Database Tables
 package "Database Schema" {
   class users {
-    +id: UUID {PK}
-    +email: VARCHAR(255) {UNIQUE}
-    +password: VARCHAR(255)
+    +id: SERIAL {PK}
+    +username: VARCHAR(50) {UNIQUE}
+    +email: VARCHAR(100)
+    +password_hash: VARCHAR(255)
     +created_at: TIMESTAMP
   }
 
@@ -61,7 +65,7 @@ package "Database Schema" {
 
   class watchlists {
     +id: UUID {PK}
-    +user_id: UUID {FK}
+    +user_id: INTEGER {FK}
     +name: VARCHAR(255)
     +calendar_token: VARCHAR(255) {UNIQUE}
     +created_at: TIMESTAMP
@@ -91,8 +95,15 @@ package "Database Schema" {
 package "Business Logic" {
   class UserService {
     -db: DatabaseAdapter
-    +get_user(user_id: UUID): User
-    +update_user(user_id: UUID, email: string): bool
+    +get_user(user_id: int): User
+    +update_user(user_id: int, email: string): bool
+  }
+
+  class AuthService {
+    -db: DatabaseAdapter
+    +register_user(user_data: Dict): User
+    +authenticate_user(username: string, password: string): User
+    +create_token(user_id: int): string
   }
 
   class StocksService {
@@ -105,21 +116,21 @@ package "Business Logic" {
   class WatchlistService {
     -db: DatabaseAdapter
     -stocks_service: StocksService
-    +create_watchlist(user_id: UUID, name: string, watchlist_settings: Dict): Dict
-    +get_all_watchlists_for_user(user_id: UUID): List[Dict]
-    +get_watchlist_by_id(user_id: UUID, watchlist_id: UUID): Dict
-    +get_watchlist_stocks(user_id: UUID, watchlist_id: UUID): List[Dict]
-    +update_watchlist(user_id: UUID, watchlist_id: UUID, name: string, watchlist_settings: Dict): bool
-    +add_stock_to_watchlist(user_id: UUID, watchlist_id: UUID, stock_ticker: string): bool
-    +remove_stock_to_watchlist(user_id: UUID, watchlist_id: UUID, stock_ticker: string): bool
-    +delete_watchlist(user_id: UUID, watchlist_id: UUID): bool
+    +create_watchlist(user_id: int, name: string, watchlist_settings: Dict): Dict
+    +get_all_watchlists_for_user(user_id: int): List[Dict]
+    +get_watchlist_by_id(user_id: int, watchlist_id: UUID): Dict
+    +get_watchlist_stocks(user_id: int, watchlist_id: UUID): List[Dict]
+    +update_watchlist(user_id: int, watchlist_id: UUID, name: string, watchlist_settings: Dict): bool
+    +add_stock_to_watchlist(user_id: int, watchlist_id: UUID, stock_ticker: string): bool
+    +remove_stock_to_watchlist(user_id: int, watchlist_id: UUID, stock_ticker: string): bool
+    +delete_watchlist(user_id: int, watchlist_id: UUID): bool
   }
 
   class CalendarService {
     -db: DatabaseAdapter
     +get_calendar(token: string): string
-    +rotate_calendar_token(user_id: UUID, watchlist_id: UUID): string
-    +get_calendar_token(user_id: UUID, watchlist_id: UUID): string
+    +rotate_calendar_token(user_id: int, watchlist_id: UUID): string
+    +get_calendar_token(user_id: int, watchlist_id: UUID): string
   }
 }
 
@@ -198,6 +209,7 @@ stocks "1" -- "0..*" stock_events : has
 
 ' Relationships - Services
 UserService ..> DatabaseAdapterBase : uses
+AuthService ..> DatabaseAdapterBase : uses
 StocksService ..> DatabaseAdapterBase : uses
 StocksService ..> ExternalApiFacade : uses
 WatchlistService ..> DatabaseAdapterBase : uses

@@ -17,7 +17,7 @@ REST -> REST: Validate email not empty
 == Update User ==
 REST -> SVC: update_user(\n  user_id,\n  email)
 
-SVC -> SVC: Validate user_id is UUID
+SVC -> SVC: Validate user_id is integer
 SVC -> SVC: Validate email is not None
 
 == Update Email ==

@@ -3,30 +3,39 @@ title User Login - Sequence Diagram
 
 actor User
 participant "AuthREST" as REST
+participant "AuthService" as SVC
 database "SQL Database" as DB
 
 
-User -> REST: POST /api/auth/login\n{ email, password }
+User -> REST: POST /api/auth/login\n{ username, password }
 
 == Validate Payload ==
-REST -> REST: Validate email format and password presence
+REST -> REST: Validate request payload
+
+== Authenticate User ==
+REST -> SVC: authenticate_user(username, password)
 
 == User Lookup ==
-REST -> DB: SELECT id, password, email, created_at\nFROM users\nWHERE email = :email
-DB --> REST: user record or None
+SVC -> DB: SELECT id, username, email, password_hash, created_at\nFROM users\nWHERE username = :username
+DB --> SVC: user record or None
 
 alt user not found
-  REST --> User: 401 Unauthorized\n{ message: "Invalid credentials" }
+  SVC --> REST: None
+  REST --> User: 401 Unauthorized\n{ message: "Invalid username or password" }
 else user found
   == Password Verification ==
-  REST -> REST: auth_utils.verify_password(\n  password,\n  stored_password_hash)
+  SVC -> SVC: check_password_hash(\n  user.password_hash,\n  password)
   
   alt password valid
+    SVC --> REST: User object
+    
     == Generate Token ==
-    REST -> REST: token = auth_utils.generate_jwt(\n  user_id,\n  email)
-    REST --> User: 200 OK\n{ token, user: { id, email, created_at } }
+    REST -> SVC: create_token(user.id)
+    SVC --> REST: access_token
+    REST --> User: 200 OK\n{ access_token }
   else password invalid
-    REST --> User: 401 Unauthorized\n{ message: "Invalid credentials" }
+    SVC --> REST: None
+    REST --> User: 401 Unauthorized\n{ message: "Invalid username or password" }
   end
 end
 
