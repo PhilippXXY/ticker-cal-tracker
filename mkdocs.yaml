@@ -1,0 +1,38 @@
+site_name: Stock Ticker Calendar Tracker Documentation
+
+theme:
+  name: "material"
+
+repo_name: Stock Ticker Calendar Tracker
+repo_url: https://github.com/PhilippXXY/ticker-cal-tracker
+
+plugins:
+  - search
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - plantuml:
+      puml_url: 'https://www.plantuml.com/plantuml/'
+
+nav:
+  - Home: index.md
+  - Documentation: docs.md
+  - UML Diagrams:
+      - Application Class Diagram: uml/class_diagram_application.md
+      - Authentication:
+          - Create User: uml/sequence_diagram_create_user.md
+          - User Login: uml/sequence_diagram_login.md
+      - User Profile:
+          - Update User Profile: uml/sequence_diagram_update_user_preference_settings.md
+      - Watchlists:
+          - Create Watchlist: uml/sequence_diagram_create_watchlist.md
+          - Get Watchlists: uml/sequence_diagram_get_watchlists.md
+          - Rename Watchlist: uml/sequence_diagram_rename_watchlist.md
+          - Update Watchlist Settings: uml/sequence_diagram_update_watchlist_settings.md
+          - Delete Watchlist: uml/sequence_diagram_delete_watchlist.md
+          - Get Watchlist Follows: uml/sequence_diagram_watchlist_follows.md
+      - Stock Management:
+          - Follow Stock: uml/sequence_diagram_follow_stock.md
+          - Unfollow Stock: uml/sequence_diagram_unfollow_stock.md
+      - Calendar:
+          - Fetch Calendar from URL: uml/sequence_diagram_fetch_calendar_from_url.md
+          - Rotate Calendar Token: uml/sequence_diagram_rotate_watchlist_calendar_token.md

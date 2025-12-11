@@ -1,0 +1,42 @@
+# Create User
+
+This diagram illustrates the user registration flow where a new user signs up by providing a username, email, and password. The system validates the username for uniqueness, hashes the password for security, and stores the new user in the database.
+
+```puml
+@startuml sequence_diagram_create_user
+title Create User - Sequence Diagram
+
+actor User
+participant "AuthREST" as REST
+participant "AuthService" as SVC
+database "SQL Database" as DB
+
+User -> REST: POST /api/auth/register\n{ username, email, password }
+
+== Validation & Preparation ==
+REST -> REST: Validate request payload
+
+== Register User ==
+REST -> SVC: register_user(user_data)
+
+== Username Uniqueness Check ==
+SVC -> DB: SELECT 1 FROM users\nWHERE username = :username
+DB --> SVC: exists or None
+
+alt username already exists
+  SVC --> REST: ValueError: "Username already exists"
+  REST --> User: 409 Conflict\n{ message: "Username already exists" }
+else username available
+  == Hash Password ==
+  SVC -> SVC: password_hash = generate_password_hash(password)
+  
+  == Create User ==
+  SVC -> DB: INSERT INTO users\n(username, email, password_hash)\nVALUES (:username, :email, :password_hash)
+  DB --> SVC: new_user
+  
+  SVC --> REST: User object
+  REST --> User: 201 Created\n{ message: "User registered successfully" }
+end
+
+@enduml
+```

@@ -1,0 +1,48 @@
+# Update User Profile
+
+This diagram illustrates how a user can update their profile information, specifically their email address. The system validates the new email, updates the database, and returns the updated user profile.
+
+```puml
+@startuml sequence_diagram_update_user_preference_settings
+title Update User Profile - Sequence Diagram
+
+actor User
+participant "UserREST" as REST
+participant "UserService" as SVC
+database "SQL Database" as DB
+
+
+User -> REST: PUT /api/user/profile\n{ email: "newemail@example.com" }
+
+== Authentication & Validation ==
+REST -> REST: auth_utils.get_current_user_id()
+REST -> REST: Validate email format
+REST -> REST: Validate email not empty
+
+== Update User ==
+REST -> SVC: update_user(\n  user_id,\n  email)
+
+SVC -> SVC: Validate user_id is integer
+SVC -> SVC: Validate email is not None
+
+== Update Email ==
+SVC -> DB: UPDATE users\nSET email = :email\nWHERE id = :user_id
+DB --> SVC: rows_affected
+
+alt rows_affected > 0
+  SVC --> REST: True
+  
+  == Retrieve Updated User ==
+  REST -> SVC: get_user(user_id)
+  SVC -> DB: SELECT email, created_at\nFROM users\nWHERE id = :user_id
+  DB --> SVC: user_data
+  SVC --> REST: User
+  
+  REST --> User: 200 OK\n{ email, created_at }
+else no rows updated
+  SVC --> REST: False
+  REST --> User: 400 Bad Request\n{ message: "No changes made" }
+end
+
+@enduml
+```
