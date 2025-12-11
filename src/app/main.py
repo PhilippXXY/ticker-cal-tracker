@@ -52,6 +52,7 @@ def create_app():
     except Exception as e:
         logging.error(f"Failed to initialize database: {e}")
         db_adapter = None
+        db_adapter = None
     
     # Initialize Flask
     app = Flask(__name__)
@@ -123,6 +124,12 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
+    port = int(os.environ.get("PORT", 8080))
+    app.run(
+        host='0.0.0.0',
+        port=port,
+        debug=False,
+    )
     port = int(os.environ.get("PORT", 8080))
     app.run(
         host='0.0.0.0',
