@@ -48,6 +48,7 @@ def create_app():
             db_adapter = None
         else:
             logging.info(f"Database connection established successfully in {db_environment.value} mode")
+            logging.info(f"Database health check is successful: {db_adapter.health_check()}")
     except Exception as e:
         logging.error(f"Failed to initialize database: {e}")
         db_adapter = None
