@@ -111,11 +111,7 @@ class DatabaseAdapterFactory:
         
         Returns:
             GcpDatabaseAdapter: Configured GCP database adapter
-            
-        Note:
-            This will need proper GCP configuration once GcpDatabaseAdapter is implemented.
         '''
-        # TODO: Add GCP-specific configuration parameters
         return GcpDatabaseAdapter()
     
     @classmethod

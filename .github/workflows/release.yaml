@@ -113,6 +113,10 @@ jobs:
       REPOSITORY: ${{ secrets.GCP_AR_REPO }}
       SERVICE: ${{ secrets.CLOUD_RUN_SERVICE }}
       VERSION: ${{ needs.release-from-pr.outputs.version }}
+      DB_INSTANCE_CONNECTION_NAME: ${{ secrets.DB_INSTANCE_CONNECTION_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
       - name: Compute image names
@@ -169,4 +173,12 @@ jobs:
             --image "$AR_IMAGE" \
             --region $REGION \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            \
+            # Database connection variables
+            --add-cloudsql-instances "$DB_INSTANCE_CONNECTION_NAME" \
+            --set-env-vars USE_CLOUDSQL_SOCKET=true \
+            --set-env-vars DB_INSTANCE_CONNECTION_NAME="$DB_INSTANCE_CONNECTION_NAME" \
+            --set-env-vars DB_USER="$DB_USER" \
+            --set-env-vars DB_NAME="$DB_NAME" \
+            --set-env-vars DB_PASSWORD="$DB_PASSWORD"
