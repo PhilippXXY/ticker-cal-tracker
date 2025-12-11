@@ -9,6 +9,8 @@ on:
 permissions:
     contents: write
     packages: write
+    pages: write
+    id-token: write
 
 jobs:
   build-image:
@@ -107,7 +109,9 @@ jobs:
     if: github.event.pull_request.merged == true
     uses: ./.github/workflows/mkdocs-push.yaml
     permissions:
-      contents: write
+      contents: read
+      pages: write
+      id-token: write
 
   deploy-to-cloud-run:
     needs: release-from-pr
@@ -124,6 +128,8 @@ jobs:
       DB_USER: ${{ secrets.DB_USER }}
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      API_KEY_ALPHA_VANTAGE: ${{ secrets.API_KEY_ALPHA_VANTAGE }}
+      API_KEY_FINNHUB: ${{ secrets.API_KEY_FINNHUB }}
 
     steps:
       - name: Compute image names
@@ -187,3 +193,5 @@ jobs:
             --set-env-vars DB_USER="$DB_USER" \
             --set-env-vars DB_NAME="$DB_NAME" \
             --set-env-vars DB_PASSWORD="$DB_PASSWORD"
+            --set-env-vars API_KEY_ALPHA_VANTAGE="$API_KEY_ALPHA_VANTAGE"
+            --set-env-vars API_KEY_FINNHUB="$API_KEY_FINNHUB"
