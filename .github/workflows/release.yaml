@@ -174,8 +174,6 @@ jobs:
             --region $REGION \
             --platform managed \
             --allow-unauthenticated \
-            \
-            # Database connection variables
             --add-cloudsql-instances "$DB_INSTANCE_CONNECTION_NAME" \
             --set-env-vars USE_CLOUDSQL_SOCKET=true \
             --set-env-vars DB_INSTANCE_CONNECTION_NAME="$DB_INSTANCE_CONNECTION_NAME" \
