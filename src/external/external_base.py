@@ -20,8 +20,6 @@ class ExternalApiBaseDefinition(ABC):
         Raises:
             ValueError: If API key is not found in environment
         '''
-        # Load the api key from the local .env
-        load_dotenv(Path('.env'))
         self.api_key = os.getenv(api_key_name)
         if not self.api_key:
             raise ValueError(f"API key '{api_key_name}' not found in environment variables")
