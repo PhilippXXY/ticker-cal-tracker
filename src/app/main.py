@@ -60,7 +60,7 @@ def create_app():
     # Configuration for Flask-Smorest
     app.config.update({
         'API_TITLE': 'Ticker Calendar Tracker API',
-        'API_VERSION': '0.1.8',
+        'API_VERSION': '0.1.9',
         'OPENAPI_VERSION': '3.0.3',
         'OPENAPI_URL_PREFIX': '/',
         'OPENAPI_SWAGGER_UI_PATH': '/docs',
