@@ -1,7 +1,5 @@
 import os
 from abc import ABC, abstractmethod
-from dotenv import load_dotenv
-from pathlib import Path
 
 from src.models.stock_model import Stock
 
