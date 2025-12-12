@@ -1,5 +1,6 @@
 # Disclaimer: Created by GitHub Copilot
 
+import os
 import unittest
 from unittest.mock import patch
 
@@ -141,34 +142,34 @@ class TestDatabaseAdapterFactoryIntegration(unittest.TestCase):
         # Should be different instances (new object created)
         self.assertNotEqual(adapter1_id, adapter2_id)
     
-    def test_gcp_adapter_methods_raise_not_implemented(self):
-        """Test that GCP adapter methods raise NotImplementedError (as expected)."""
-        DatabaseAdapterFactory.initialize(DatabaseEnvironment.DEPLOYMENT)
-        
-        adapter = DatabaseAdapterFactory.get_instance()
-        
-        # All methods should raise NotImplementedError
-        with self.assertRaises(NotImplementedError):
-            adapter.get_engine()
-        
-        with self.assertRaises(NotImplementedError):
-            with adapter.get_session():
-                pass
-        
-        with self.assertRaises(NotImplementedError):
-            adapter.execute_query(query="SELECT 1")
-        
-        with self.assertRaises(NotImplementedError):
-            adapter.execute_update(query="UPDATE test SET x = 1")
-        
-        with self.assertRaises(NotImplementedError):
-            adapter.execute_many(query="INSERT INTO test VALUES (?)", params_list=[])
-        
-        with self.assertRaises(NotImplementedError):
-            adapter.health_check()
-        
-        with self.assertRaises(NotImplementedError):
-            adapter.close()
+    def test_gcp_adapter_is_properly_configured(self):
+        """Test that GCP adapter is properly configured with required environment variables."""
+        # Set required environment variables for GCP adapter
+        with patch.dict(os.environ, {
+            'DB_USER': 'test_user',
+            'DB_PASSWORD': 'test_password',
+            'DB_NAME': 'test_db',
+            'DB_HOST': '127.0.0.1',
+            'DB_PORT': '5432',
+            'USE_CLOUDSQL_SOCKET': 'false'
+        }):
+            DatabaseAdapterFactory.initialize(DatabaseEnvironment.DEPLOYMENT)
+            
+            adapter = DatabaseAdapterFactory.get_instance()
+            
+            # Verify it's a GCP adapter
+            self.assertIsInstance(adapter, GcpDatabaseAdapter)
+            
+            # Verify the adapter has required attributes
+            self.assertTrue(hasattr(adapter, 'engine'))
+            self.assertTrue(hasattr(adapter, 'connection_string'))
+            self.assertTrue(hasattr(adapter, 'session_factory'))
+            
+            # Verify methods exist and are callable
+            self.assertTrue(callable(adapter.get_engine))
+            self.assertTrue(callable(adapter.get_session))
+            self.assertTrue(callable(adapter.execute_query))
+            self.assertTrue(callable(adapter.execute_update))
 
 
 class TestParseEnvironmentFromArgsIntegration(unittest.TestCase):

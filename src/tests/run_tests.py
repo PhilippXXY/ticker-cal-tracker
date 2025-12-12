@@ -161,6 +161,14 @@ def run_db_integration_tests(verbose=True):
     db_port = os.getenv('DB_PORT', '5432')
     db_name = os.getenv('DB_NAME', 'ticker_calendar_local_dev_db')
     
+    # SAFETY CHECK: Never allow tests to run against production
+    if db_host not in ('127.0.0.1', 'localhost', 'postgres'):
+        print(f"\n⚠️  WARNING: DB_HOST set to production database: {db_host}")
+        print(f"   Overriding to use localhost (127.0.0.1) for tests")
+        print(f"   Tests will NEVER run against production")
+        print(f"\n   Tip: Remove DB_HOST from .env to avoid this warning\n")
+        db_host = '127.0.0.1'
+    
     print(f"  Database: {db_name}")
     print(f"  Host: {db_host}:{db_port}")
     

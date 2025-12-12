@@ -25,8 +25,16 @@ class TestUserServiceIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         '''Set up database connection for all tests.'''
+        # SAFETY CHECK: Never allow tests to run against production
+        db_host = os.getenv('DB_HOST', '127.0.0.1')
+        if db_host not in ('127.0.0.1', 'localhost', 'postgres'):
+            print(f"\n⚠️  WARNING: DB_HOST set to production database: {db_host}")
+            print(f"   Overriding to use localhost (127.0.0.1) for tests")
+            print(f"   Tests will NEVER run against production\n")
+            db_host = '127.0.0.1'
+        
         cls.adapter = LocalDatabaseAdapter(
-            host=os.getenv('DB_HOST', '127.0.0.1'),
+            host='127.0.0.1',
             port=int(os.getenv('DB_PORT', 5432)),
             database=os.getenv('DB_NAME', 'ticker_calendar_local_dev_db'),
             user=os.getenv('DB_USER', 'ticker_dev'),
@@ -74,16 +82,14 @@ class TestUserServiceIntegration(unittest.TestCase):
         if email is None:
             email = f'test_{user_id}@example.com'
         
-        # Check if user exists first
-        check_query = "SELECT id FROM users WHERE id = :user_id"
-        result = self.adapter.execute_query(query=check_query, params={'user_id': user_id})
-        
-        if result:
-            return user_id
-            
+        # Use INSERT ... ON CONFLICT UPDATE to ensure user exists with correct data
         query = """
             INSERT INTO users (id, username, email, password_hash)
             VALUES (:user_id, :username, :email, :password_hash)
+            ON CONFLICT (id) DO UPDATE SET
+                username = EXCLUDED.username,
+                email = EXCLUDED.email,
+                password_hash = EXCLUDED.password_hash
         """
         self.adapter.execute_update(
             query=query,

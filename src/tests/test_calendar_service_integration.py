@@ -25,8 +25,16 @@ class TestCalendarServiceIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         '''Set up database connection for all tests.'''
+        # SAFETY CHECK: Never allow tests to run against production
+        db_host = os.getenv('DB_HOST', '127.0.0.1')
+        if db_host not in ('127.0.0.1', 'localhost', 'postgres'):
+            print(f"\n⚠️  WARNING: DB_HOST set to production database: {db_host}")
+            print(f"   Overriding to use localhost (127.0.0.1) for tests")
+            print(f"   Tests will NEVER run against production\n")
+            db_host = '127.0.0.1'
+        
         cls.adapter = LocalDatabaseAdapter(
-            host=os.getenv('DB_HOST', '127.0.0.1'),
+            host='127.0.0.1',
             port=int(os.getenv('DB_PORT', 5432)),
             database=os.getenv('DB_NAME', 'ticker_calendar_local_dev_db'),
             user=os.getenv('DB_USER', 'ticker_dev'),
@@ -85,31 +93,24 @@ class TestCalendarServiceIntegration(unittest.TestCase):
     
     def _create_test_user(self):
         '''Helper to create a test user.'''
-        # We need to handle potential conflict if ID 1 already exists
-        # In a real integration test, we might want to let the DB assign the ID
-        # But for simplicity here, we'll try to insert with a specific ID or update
-        
-        # First check if user exists
-        check_query = "SELECT id FROM users WHERE id = :user_id"
-        result = self.adapter.execute_query(query=check_query, params={'user_id': self.test_user_id})
-        
-        if result:
-            # User exists, just ensure fields are what we expect if needed
-            pass
-        else:
-            query = """
-                INSERT INTO users (id, username, email, password_hash)
-                VALUES (:user_id, :username, :email, :password_hash)
-            """
-            self.adapter.execute_update(
-                query=query,
-                params={
-                    'user_id': self.test_user_id,
-                    'username': f'testuser_{self.test_user_id}',
-                    'email': f'test_{self.test_user_id}@example.com',
-                    'password_hash': 'test_hash'
-                }
-            )
+        # Use INSERT ... ON CONFLICT UPDATE to ensure user exists with correct data
+        query = """
+            INSERT INTO users (id, username, email, password_hash)
+            VALUES (:user_id, :username, :email, :password_hash)
+            ON CONFLICT (id) DO UPDATE SET
+                username = EXCLUDED.username,
+                email = EXCLUDED.email,
+                password_hash = EXCLUDED.password_hash
+        """
+        self.adapter.execute_update(
+            query=query,
+            params={
+                'user_id': self.test_user_id,
+                'username': f'testuser_{self.test_user_id}',
+                'email': f'test_{self.test_user_id}@example.com',
+                'password_hash': 'test_hash'
+            }
+        )
     
     def _create_test_stock(self, ticker, name):
         '''Helper to create a test stock.'''
@@ -332,8 +333,16 @@ class TestRotateCalendarTokenIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         '''Set up database connection for all tests.'''
+        # SAFETY CHECK: Never allow tests to run against production
+        db_host = os.getenv('DB_HOST', '127.0.0.1')
+        if db_host not in ('127.0.0.1', 'localhost', 'postgres'):
+            print(f"\n⚠️  WARNING: DB_HOST set to production database: {db_host}")
+            print(f"   Overriding to use localhost (127.0.0.1) for tests")
+            print(f"   Tests will NEVER run against production\n")
+            db_host = '127.0.0.1'
+        
         cls.adapter = LocalDatabaseAdapter(
-            host=os.getenv('DB_HOST', '127.0.0.1'),
+            host='127.0.0.1',
             port=int(os.getenv('DB_PORT', 5432)),
             database=os.getenv('DB_NAME', 'ticker_calendar_local_dev_db'),
             user=os.getenv('DB_USER', 'ticker_dev'),
@@ -505,8 +514,16 @@ class TestGetCalendarTokenIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         '''Set up database connection for all tests.'''
+        # SAFETY CHECK: Never allow tests to run against production
+        db_host = os.getenv('DB_HOST', '127.0.0.1')
+        if db_host not in ('127.0.0.1', 'localhost', 'postgres'):
+            print(f"\n⚠️  WARNING: DB_HOST set to production database: {db_host}")
+            print(f"   Overriding to use localhost (127.0.0.1) for tests")
+            print(f"   Tests will NEVER run against production\n")
+            db_host = '127.0.0.1'
+        
         cls.adapter = LocalDatabaseAdapter(
-            host=os.getenv('DB_HOST', '127.0.0.1'),
+            host='127.0.0.1',
             port=int(os.getenv('DB_PORT', 5432)),
             database=os.getenv('DB_NAME', 'ticker_calendar_local_dev_db'),
             user=os.getenv('DB_USER', 'ticker_dev'),
