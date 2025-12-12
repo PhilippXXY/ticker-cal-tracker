@@ -119,7 +119,7 @@ https://ticker-cal-tracker-1052233055044.europe-west2.run.app/api/cal/76ad0a4e-8
 The response includes the calendar URL and its token:
 ```
 {
-  "calendar_url": "http://ticker-cal-tracker-1052233055044.europe-west2.run.app/api/cal/PA9iHoKQGwq7otzZXmLR2oSvZnof7AHjqfN0WIp9hx8.ics",
+  "calendar_url": "https://ticker-cal-tracker-1052233055044.europe-west2.run.app/api/cal/PA9iHoKQGwq7otzZXmLR2oSvZnof7AHjqfN0WIp9hx8.ics",
   "token": "PA9iHoKQGwq7otzZXmLR2oSvZnof7AHjqfN0WIp9hx8"
 }
 ```
