@@ -16,6 +16,7 @@ plugins:
 nav:
   - Home: index.md
   - Documentation: docs.md
+  - API Demonstration: api_demonstration.md
   - UML Diagrams:
       - Application Class Diagram: uml/class_diagram_application.md
       - Authentication:
