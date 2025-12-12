@@ -192,6 +192,6 @@ jobs:
             --set-env-vars DB_INSTANCE_CONNECTION_NAME="$DB_INSTANCE_CONNECTION_NAME" \
             --set-env-vars DB_USER="$DB_USER" \
             --set-env-vars DB_NAME="$DB_NAME" \
-            --set-env-vars DB_PASSWORD="$DB_PASSWORD"
-            --set-env-vars API_KEY_ALPHA_VANTAGE="$API_KEY_ALPHA_VANTAGE"
+            --set-env-vars DB_PASSWORD="$DB_PASSWORD" \
+            --set-env-vars API_KEY_ALPHA_VANTAGE="$API_KEY_ALPHA_VANTAGE" \
             --set-env-vars API_KEY_FINNHUB="$API_KEY_FINNHUB"
