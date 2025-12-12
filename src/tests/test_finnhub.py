@@ -251,12 +251,10 @@ class TestFinnhub(unittest.TestCase):
         self.api_key_patch.stop()
         try:
             with patch.dict(os.environ, {}, clear=True):
-                # Mock load_dotenv to prevent loading from .env file
-                with patch('src.external.external_base.load_dotenv'):
-                    with self.assertRaises(ValueError) as context:
-                        Finnhub()
-                    
-                    self.assertIn("API key 'API_KEY_FINNHUB' not found in environment variables", str(context.exception))
+                with self.assertRaises(ValueError) as context:
+                    Finnhub()
+                
+                self.assertIn("API key 'API_KEY_FINNHUB' not found in environment variables", str(context.exception))
         finally:
             # Restart the patch for cleanup
             self.api_key_patch.start()
