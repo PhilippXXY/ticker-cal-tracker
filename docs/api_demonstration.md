@@ -12,7 +12,6 @@ Send a POST request to `api/auth/login` with these credentials:
 curl -X 'POST' \
   'https://ticker-cal-tracker-1052233055044.europe-west2.run.app/api/auth/login' \
   -H 'accept: application/json' \
-  -H 'Authorization: Bearer ***' \
   -H 'Content-Type: application/json' \
   -d '{
   "username": "demo",
