@@ -47,7 +47,7 @@ function UserPanel({ apiUrl, token }) {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [apiUrl, token]);
 
   return (
     <div className="panel">
