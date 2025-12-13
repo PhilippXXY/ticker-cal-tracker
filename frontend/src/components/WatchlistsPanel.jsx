@@ -300,13 +300,13 @@ function WatchlistsPanel({ apiUrl, token }) {
 
   useEffect(() => {
     fetchWatchlists();
-  }, []);
+  }, [apiUrl, token]);
 
   useEffect(() => {
     if (selectedWatchlist) {
       fetchFollows(selectedWatchlist);
     }
-  }, [selectedWatchlist]);
+  }, [selectedWatchlist, apiUrl, token]);
 
   return (
     <div className="panel">
