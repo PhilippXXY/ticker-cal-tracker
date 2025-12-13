@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: "/",
+  // Use the repository path when building for production so assets resolve on GitHub Pages
+  base: mode === "production" ? "/ticker-cal-tracker/" : "/",
   build: {
     outDir: "dist",
   },
@@ -16,4 +17,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
