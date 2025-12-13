@@ -35,18 +35,20 @@ function WatchlistsPanel({ apiUrl, token }) {
 
       // Fetch calendar URLs for all watchlists (non-blocking)
       const urls = {};
-      for (const wl of res.data) {
-        try {
-          const calRes = await axios.get(`${apiUrl}/api/cal/${wl.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          urls[wl.id] = calRes.data.calendar_url;
-        } catch (err) {
-          // Silently fail for calendar URLs - they're not critical
-          console.warn(`Could not fetch calendar URL for ${wl.id}`);
-          urls[wl.id] = "Calendar URL unavailable";
-        }
-      }
+      await Promise.all(
+        res.data.map(async (wl) => {
+          try {
+            const calRes = await axios.get(`${apiUrl}/api/cal/${wl.id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            urls[wl.id] = calRes.data.calendar_url;
+          } catch (err) {
+            // Silently fail for calendar URLs - they're not critical
+            console.warn(`Could not fetch calendar URL for ${wl.id}`);
+            urls[wl.id] = "Calendar URL unavailable";
+          }
+        })
+      );
       setCalendarUrls(urls);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;
