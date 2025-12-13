@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 from src.api.routes.auth_rest import auth_bp
 from src.api.routes.calendar_rest import calendar_bp
@@ -57,10 +58,23 @@ def create_app():
     # Initialize Flask
     app = Flask(__name__)
     
+    # Enable CORS for frontend access
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": [
+                "https://philippxxy.github.io"
+            ],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "expose_headers": ["Content-Type"],
+            "supports_credentials": True
+        }
+    })
+    
     # Configuration for Flask-Smorest
     app.config.update({
         'API_TITLE': 'Ticker Calendar Tracker API',
-        'API_VERSION': '0.1.9',
+        'API_VERSION': '0.2.0',
         'OPENAPI_VERSION': '3.0.3',
         'OPENAPI_URL_PREFIX': '/',
         'OPENAPI_SWAGGER_UI_PATH': '/docs',

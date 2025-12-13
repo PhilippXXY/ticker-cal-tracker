@@ -36,9 +36,17 @@ class TestStocksServiceIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         '''Set up test database connection.'''
+        # SAFETY CHECK: Never allow tests to run against production
+        db_host = os.getenv('DB_HOST', '127.0.0.1')
+        if db_host not in ('127.0.0.1', 'localhost', 'postgres'):
+            print(f"\n⚠️  WARNING: DB_HOST set to production database: {db_host}")
+            print(f"   Overriding to use localhost (127.0.0.1) for tests")
+            print(f"   Tests will NEVER run against production\n")
+            db_host = '127.0.0.1'
+        
         # Create LocalDatabaseAdapter directly
         cls.adapter = LocalDatabaseAdapter(
-            host=os.getenv('DB_HOST', '127.0.0.1'),
+            host='127.0.0.1',
             port=int(os.getenv('DB_PORT', 5432)),
             database=os.getenv('DB_NAME', 'ticker_calendar_local_dev_db'),
             user=os.getenv('DB_USER', 'ticker_dev'),

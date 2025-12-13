@@ -6,7 +6,7 @@
 [![Checks](https://img.shields.io/github/check-runs/PhilippXXY/ticker-cal-tracker/main?style=flat-square)](https://github.com/PhilippXXY/ticker-cal-tracker/actions)
 [![Python](https://img.shields.io/badge/python-3.12-informational?style=flat-square)](https://github.com/PhilippXXY/ticker-cal-tracker/blob/main/.python-version)
 
-[**Web App**](https://ticker-cal-tracker-1052233055044.europe-west2.run.app) | [**Documentation**](https://philippxxy.github.io/ticker-cal-tracker/) | [**OpenAPI Swagger UI**](https://ticker-cal-tracker-1052233055044.europe-west2.run.app/docs)
+[**Web App**](https://philippxxy.github.io/ticker-cal-tracker/) | [**Documentation**](https://philippxxy.github.io/ticker-cal-tracker/docs) | [**OpenAPI Swagger UI**](https://ticker-cal-tracker-1052233055044.europe-west2.run.app/docs)
 
 
 The Stock Ticker Calendar Tracker puts upcoming stock events directly into your private calendar.
@@ -46,14 +46,14 @@ If you need to revoke access, **rotate the calendar token** to invalidate existi
 
 Try the API endpoints in the [Swagger UI](https://ticker-cal-tracker-1052233055044.europe-west2.run.app/docs).
 
-The [documentation](https://philippxxy.github.io/ticker-cal-tracker/) includes a full walkthrough with curl examples showing how to create a watchlist, add FAANG stocks, and subscribe to the calendar feed.
+The [documentation](https://philippxxy.github.io/ticker-cal-tracker/docs) includes a full walkthrough with curl examples showing how to create a watchlist, add FAANG stocks, and subscribe to the calendar feed.
 
 ![Calendar Demo Watchlist FAANG](docs/img/calendar_demo_watchlist_faang.png)
 
 
 ## Development
 
-For information about the codebase and local setup, see the [documentation](https://philippxxy.github.io/ticker-cal-tracker/).
+For information about the codebase and local setup, see the [documentation](https://philippxxy.github.io/ticker-cal-tracker/docs).
 
 ### Hosted Architecture
 
