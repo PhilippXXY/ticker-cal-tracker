@@ -15,7 +15,11 @@ plugins:
 
 nav:
   - Home: index.md
-  - Documentation: docs.md
+  - Documentation:
+      - Overview: docs.md
+      - Local Setup: local_setup.md
+      - Event Types: domain/event_types.md
+      - Cloud Architecture: cloud_architecture.md
   - API Demonstration: api_demonstration.md
   - UML Diagrams:
       - Application Class Diagram: uml/class_diagram_application.md
