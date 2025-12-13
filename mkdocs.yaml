@@ -1,4 +1,5 @@
 site_name: Stock Ticker Calendar Tracker Documentation
+site_url: https://philippxxy.github.io/ticker-cal-tracker/docs/
 
 theme:
   name: "material"

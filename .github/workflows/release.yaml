@@ -104,15 +104,6 @@ jobs:
           draft: false
           prerelease: false
       
-  deploy-docs:
-    needs: release-from-pr
-    if: github.event.pull_request.merged == true
-    uses: ./.github/workflows/mkdocs-push.yaml
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
   deploy-to-cloud-run:
     needs: release-from-pr
     if: github.event.pull_request.merged == true
@@ -195,3 +186,12 @@ jobs:
             --set-env-vars DB_PASSWORD="$DB_PASSWORD" \
             --set-env-vars API_KEY_ALPHA_VANTAGE="$API_KEY_ALPHA_VANTAGE" \
             --set-env-vars API_KEY_FINNHUB="$API_KEY_FINNHUB"
+
+  deploy-pages:
+    needs: release-from-pr
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/pages-deploy.yaml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
