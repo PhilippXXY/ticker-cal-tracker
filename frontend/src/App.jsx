@@ -11,18 +11,18 @@ const API_BASE_URL = import.meta.env.DEV
   : "https://ticker-cal-tracker-1052233055044.europe-west2.run.app";
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [token, setToken] = useState("");
   const [activeTab, setActiveTab] = useState("home");
 
   const handleLogin = (newToken) => {
     setToken(newToken);
-    localStorage.setItem("token", newToken);
+    // Removed localStorage.setItem for security
     setActiveTab("user");
   };
 
   const handleLogout = () => {
     setToken("");
-    localStorage.removeItem("token");
+    // Removed localStorage.removeItem for security
     setActiveTab("home");
   };
 
