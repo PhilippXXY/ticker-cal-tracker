@@ -144,7 +144,7 @@ function WatchlistsPanel({ apiUrl, token }) {
     setResponse(null);
 
     try {
-      const res = await axios.put(
+      await axios.put(
         `${apiUrl}/api/watchlists/${editingWatchlist.id}`,
         { name: editingWatchlist.name, ...editingWatchlist.settings },
         { headers: { Authorization: `Bearer ${token}` } }
