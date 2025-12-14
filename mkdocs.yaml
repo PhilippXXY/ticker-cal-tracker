@@ -27,7 +27,6 @@ nav:
       - Event Types: event_types.md
   - UML Diagrams:
       - Application Class Diagram: uml/class_diagram_application.md
-      - CI/CD Pipeline: uml/ci_cd_pipeline.md
       - Authentication:
           - Create User: uml/sequence_diagram_create_user.md
           - User Login: uml/sequence_diagram_login.md
