@@ -35,7 +35,7 @@ function UserPanel({ apiUrl, token }) {
       payload.email = updateEmail.trim();
     }
     if (updatePassword && updatePassword.trim()) {
-      payload.password = updatePassword.trim();
+      payload.password = updatePassword;
     }
 
     // Validate that at least one field is provided
