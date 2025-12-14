@@ -93,6 +93,7 @@ class UserProfile(MethodView):
 
         password = update_data.get('password')
         if password is not None:
+            password = password.strip()
             if not password:
                 abort(HTTPStatus.BAD_REQUEST, message='Password must not be empty when provided.')
 
