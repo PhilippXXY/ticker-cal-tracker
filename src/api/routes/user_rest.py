@@ -91,7 +91,12 @@ class UserProfile(MethodView):
             if not email:
                 abort(HTTPStatus.BAD_REQUEST, message='Email must not be empty when provided.')
 
-        if not email:
+        password = update_data.get('password')
+        if password is not None:
+            if not password:
+                abort(HTTPStatus.BAD_REQUEST, message='Password must not be empty when provided.')
+
+        if not email and not password:
             abort(HTTPStatus.BAD_REQUEST, message='Provide at least one field to update.')
 
         updated = False
@@ -100,6 +105,7 @@ class UserProfile(MethodView):
             updated = get_user_service().update_user(
                 user_id=user_id,
                 email=email,
+                password=password,
             )
         except ValueError as exc:
             abort(HTTPStatus.BAD_REQUEST, message=str(exc))

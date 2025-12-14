@@ -18,6 +18,10 @@ class UserUpdateSchema(Schema):
     '''
     Schema for updating user information.
     '''
+    password = fields.Str(
+        load_only=True,
+        metadata={'description': 'New password for the user.', 'example': 'newpassword123'},
+    )
     email = fields.Email(
         validate=Email(),
         metadata={'description': 'Updated email address.', 'example': 'newemail@example.com'},

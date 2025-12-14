@@ -4,7 +4,7 @@ import axios from "axios";
 function UserPanel({ apiUrl, token }) {
   const [profile, setProfile] = useState(null);
   const [updateEmail, setUpdateEmail] = useState("");
-  const [response, setResponse] = useState(null);
+  const [updatePassword, setUpdatePassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,16 +28,30 @@ function UserPanel({ apiUrl, token }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setResponse(null);
+
+    // Build payload with only non-empty fields
+    const payload = {};
+    if (updateEmail && updateEmail.trim()) {
+      payload.email = updateEmail.trim();
+    }
+    if (updatePassword && updatePassword.trim()) {
+      payload.password = updatePassword.trim();
+    }
+
+    // Validate that at least one field is provided
+    if (Object.keys(payload).length === 0) {
+      setError("Please provide at least one field to update.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const res = await axios.put(
-        `${apiUrl}/api/user/profile`,
-        { email: updateEmail },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setResponse(res.data);
+      const res = await axios.put(`${apiUrl}/api/user/profile`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setProfile(res.data);
+      // Clear password field after successful update
+      setUpdatePassword("");
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -88,24 +102,29 @@ function UserPanel({ apiUrl, token }) {
             type="email"
             value={updateEmail}
             onChange={(e) => setUpdateEmail(e.target.value)}
-            required
+            placeholder="Enter new email (optional)"
           />
         </div>
+        <div className="form-group">
+          <label>Password:</label>
+          <input
+            type="password"
+            value={updatePassword}
+            onChange={(e) => setUpdatePassword(e.target.value)}
+            placeholder="Enter new password (optional)"
+          />
+        </div>
+        <p className="form-hint">
+          Update one or both fields. At least one field must be provided.
+        </p>
         <button type="submit" disabled={loading} className="submit-btn">
-          Update Email
+          Update Profile
         </button>
       </form>
 
       {error && (
         <div className="error-box">
           <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {response && (
-        <div className="response-box">
-          <strong>Update Response:</strong>
-          <pre>{JSON.stringify(response, null, 2)}</pre>
         </div>
       )}
     </div>
