@@ -36,7 +36,7 @@ cd ticker-cal-tracker
 
 ---
 
-## Step 2: Create Virtual Environment Environment
+## Step 2: Create Virtual Environment
 
 Create an isolated Python environment to avoid dependency conflicts:
 
