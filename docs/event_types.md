@@ -1,6 +1,6 @@
 # Event Types
 
-This section describes the event types supported by the \*\*Stock Ticker Calendar Tracker\*\*.
+This section describes the event types supported by the **Stock Ticker Calendar Tracker**.
 
 Event types define which categories of stock-related events are tracked for a watchlist and therefore appear in the generated calendar feed.
 

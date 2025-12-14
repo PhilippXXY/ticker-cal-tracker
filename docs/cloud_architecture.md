@@ -92,14 +92,40 @@ The project uses **GitHub Actions** to implement a continuous integration and de
 
 ### Pipeline Stages
 
-1. Code checkout
-2. Static analysis and linting
-3. Type checking
-4. Automated testing
-5. Docker image build
-6. Deployment to Cloud Run
+The CI/CD pipeline consists of two primary workflows:
 
-This ensures that changes are automatically tested and validated prior to deployment.
+#### Pull Request Validation Workflow
+
+1. **Code checkout** - Fetches the latest code from the feature branch
+2. **Environment setup** - Installs Python and dependencies
+3. **Static analysis** - Runs `ruff` for linting and code style checks
+4. **Type checking** - Executes `mypy` to verify type annotations
+5. **Automated testing** - Runs complete test suite (unit + integration tests)
+6. **PR status update** - Blocks merge if any check fails
+
+#### Main Branch Deployment Workflow
+
+1. **Docker image build** - Creates containerized application image
+2. **Image publishing** - Pushes to GitHub Container Registry
+3. **Cloud authentication** - Authenticates with Google Cloud using service account
+4. **Deployment to Cloud Run** - Deploys new version with zero downtime
+5. **Release creation** - Automatically creates GitHub release with versioning
+6. **Documentation deployment** - Builds and publishes MkDocs site to GitHub Pages
+
+This ensures that changes are automatically tested and validated prior to deployment. Only code that passes all quality gates reaches production.
+
+### Zero-Downtime Deployment
+
+Cloud Run implements **rolling deployments**:
+
+1. New container instances are started alongside existing ones
+2. Health checks verify new instances are ready
+3. Traffic gradually shifts from old to new instances
+4. Old instances are terminated after successful migration
+
+This guarantees continuous service availability during deployments.
+
+For detailed pipeline documentation and diagrams, see [CI/CD Pipeline](ci_cd_pipeline.md).
 
 ---
 
@@ -107,9 +133,13 @@ This ensures that changes are automatically tested and validated prior to deploy
 
 Technical documentation is built using **MkDocs** and deployed automatically via GitHub Actions.
 
-- Documentation is generated from Markdown files
-- UML diagrams are rendered automatically using PlantUML
-- The documentation site is published to GitHub Pages
+### Documentation Workflow
+
+- Documentation is generated from Markdown files in the `docs/` directory
+- UML diagrams (class diagrams, sequence diagrams) are rendered automatically using PlantUML
+- The documentation site is built with `mkdocs build` command
+- Built site is published to GitHub Pages
+- Accessible at: [https://philippxxy.github.io/ticker-cal-tracker/docs](https://philippxxy.github.io/ticker-cal-tracker/docs)
 
 This guarantees that documentation remains consistent with the codebase.
 
@@ -125,19 +155,3 @@ The architecture supports:
 
 Cloud-managed services reduce operational overhead and increase system reliability.
 
----
-
-## Mapping to Grading Criteria
-
-| Requirement            | Fulfilled By                       |
-| ---------------------- | ---------------------------------- |
-| CI/CD pipeline         | GitHub Actions                     |
-| HTTPS                  | Google Cloud Run                   |
-| GCP database           | Cloud SQL for PostgreSQL           |
-| REST services          | Flask-based API                    |
-| Documentation          | MkDocs + GitHub Pages              |
-| Testing & checks       | Automated CI workflows             |
-| Scalability            | Serverless Cloud Run               |
-| Authentication         | JWT-based auth                     |
-| Access management      | Role separation & service accounts |
-| Secure database access | Cloud SQL Auth Proxy               |

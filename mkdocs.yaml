@@ -16,14 +16,18 @@ plugins:
 
 nav:
   - Home: index.md
-  - Documentation:
-      - Overview: docs.md
+  - Getting Started:
       - Local Setup: local_setup.md
-      - Event Types: domain/event_types.md
+      - API Demonstration: api_demonstration.md
+  - Development:
+      - Testing: testing.md
+      - CI/CD Pipeline: ci_cd_pipeline.md
+  - Architecture:
       - Cloud Architecture: cloud_architecture.md
-  - API Demonstration: api_demonstration.md
+      - Event Types: event_types.md
   - UML Diagrams:
       - Application Class Diagram: uml/class_diagram_application.md
+      - CI/CD Pipeline: uml/ci_cd_pipeline.md
       - Authentication:
           - Create User: uml/sequence_diagram_create_user.md
           - User Login: uml/sequence_diagram_login.md
