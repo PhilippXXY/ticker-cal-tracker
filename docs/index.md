@@ -22,8 +22,7 @@ The Stock Ticker Calendar Tracker is a cloud-native web application that:
 
 ### Getting Started
 
-- **[Running Locally](running_locally.md)** - Step-by-step guide to set up your development environment
-- **[Local Setup](local_setup.md)** - Technical details about the local development environment
+- **[Local Setup](local_setup.md)** - Step-by-step guide and technical details to set up your development environment
 - **[API Demonstration](api_demonstration.md)** - Example API workflows and usage
 
 ### Development
