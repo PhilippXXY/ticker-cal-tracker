@@ -23,28 +23,38 @@ class WatchlistSchema(Schema):
         dump_only=True,
         metadata={'description': 'Timestamp representing when the watchlist was created.', 'example': '2025-10-27T10:30:00Z'},
     )
+    stock_count = fields.Int(
+        dump_only=True,
+        metadata={'description': 'Number of stocks in the watchlist.', 'example': 5},
+    )
     include_earnings_announcement = fields.Bool(
         dump_only=True,
+        allow_none=True,
         metadata={'description': 'Indicates if earnings announcements are tracked.', 'example': True},
     )
     include_dividend_ex = fields.Bool(
         dump_only=True,
+        allow_none=True,
         metadata={'description': 'Indicates if dividend ex-dates are tracked.', 'example': True},
     )
     include_dividend_declaration = fields.Bool(
         dump_only=True,
+        allow_none=True,
         metadata={'description': 'Indicates if dividend declarations are tracked.', 'example': True},
     )
     include_dividend_record = fields.Bool(
         dump_only=True,
+        allow_none=True,
         metadata={'description': 'Indicates if dividend record dates are tracked.', 'example': True},
     )
     include_dividend_payment = fields.Bool(
         dump_only=True,
+        allow_none=True,
         metadata={'description': 'Indicates if dividend payment dates are tracked.', 'example': True},
     )
     include_stock_split = fields.Bool(
         dump_only=True,
+        allow_none=True,
         metadata={'description': 'Indicates if stock splits are tracked.', 'example': True},
     )
 

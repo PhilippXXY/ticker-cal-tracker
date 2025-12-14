@@ -22,3 +22,7 @@ class UserUpdateSchema(Schema):
         validate=Email(),
         metadata={'description': 'Updated email address.', 'example': 'newemail@example.com'},
     )
+    password = fields.Str(
+        load_only=True,
+        metadata={'description': 'New password for the user.', 'example': 'newpassword123'},
+    )

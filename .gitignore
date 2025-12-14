@@ -218,3 +218,8 @@ __marimo__/
 
 # Visual Studio
 .vs/
+# Frontend
+node_modules/
+dist/
+.env.development
+.env.production

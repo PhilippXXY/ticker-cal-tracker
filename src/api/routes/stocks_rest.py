@@ -75,3 +75,35 @@ class StockResource(MethodView):
             if 'not found' in str(exc).lower() or 'Failed to fetch stock' in str(exc):
                 abort(HTTPStatus.NOT_FOUND, message=f'Stock {ticker_symbol.upper()} not found.')
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(exc))
+
+@stocks_bp.route('/<string:ticker_symbol>/quote')
+class StockQuoteResource(MethodView):
+    '''
+    Operations for stock quotes.
+    '''
+
+    @jwt_required()
+    @stocks_bp.doc(
+        summary='Retrieve stock quote',
+        description='Fetch real-time stock price and change data.',
+    )
+    @stocks_bp.response(status_code=HTTPStatus.OK)
+    @stocks_bp.alt_response(status_code=HTTPStatus.UNAUTHORIZED, description='Authentication required')
+    @stocks_bp.alt_response(status_code=HTTPStatus.NOT_FOUND, description='Stock not found')
+    def get(self, ticker_symbol):
+        '''
+        Get current stock quote.
+        '''
+        # Verify user is authenticated
+        user_id = auth_utils.get_current_user_id()
+        if not user_id:
+            abort(HTTPStatus.UNAUTHORIZED, message='Authentication required.')
+        
+        try:
+            return get_stocks_service().get_stock_quote(ticker=ticker_symbol)
+        except ValueError as exc:
+            abort(HTTPStatus.BAD_REQUEST, message=str(exc))
+        except Exception as exc:
+            if 'not found' in str(exc).lower():
+                abort(HTTPStatus.NOT_FOUND, message=f'Quote for {ticker_symbol} not found.')
+            abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(exc))

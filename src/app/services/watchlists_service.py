@@ -146,7 +146,8 @@ class WatchlistService:
                 ws.include_dividend_payment,
                 ws.include_stock_split,
                 ws.reminder_before,
-                ws.updated_at AS settings_updated_at
+                ws.updated_at AS settings_updated_at,
+                (SELECT COUNT(*) FROM follows f WHERE f.watchlist_id = w.id) AS stock_count
             FROM watchlists w
             LEFT JOIN watchlist_settings ws ON w.id = ws.watchlist_id
             WHERE w.user_id = :user_id
@@ -185,7 +186,8 @@ class WatchlistService:
                 ws.include_dividend_payment,
                 ws.include_stock_split,
                 ws.reminder_before,
-                ws.updated_at AS settings_updated_at
+                ws.updated_at AS settings_updated_at,
+                (SELECT COUNT(*) FROM follows f WHERE f.watchlist_id = w.id) AS stock_count
             FROM watchlists w
             LEFT JOIN watchlist_settings ws ON w.id = ws.watchlist_id
             WHERE w.id = :watchlist_id AND w.user_id = :user_id

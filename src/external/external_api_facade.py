@@ -1,6 +1,7 @@
 import logging
 from .alpha_vantage import AlphaVantage
 from .finnhub import Finnhub
+from .yfinance_adapter import YFinanceAdapter
 from src.models.stock_event_model import EventType, StockEvent
 from src.models.stock_model import Stock
 
@@ -8,44 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class ExternalApiFacade:
-    '''
-    Unified facade for external financial data APIs.
-    
-    Provides a single interface to retrieve stock information and event data
-    from multiple external providers. Automatically handles fallback logic
-    between APIs based on availability and rate limits.
-    
-    Priority:
-    - Stock lookups: Finnhub (primary) -> Alpha Vantage (fallback)
-    - Event data: Alpha Vantage (only provider)
-    '''
-    
+   
     def __init__(self):
-        '''
-        Initialize facade with API clients.
-        
-        Raises:
-            ValueError: If required API keys are missing from environment
-        '''
         self.alpha_vantage = AlphaVantage()
         self.finnhub = Finnhub()
+        self.yfinance = YFinanceAdapter()
     
     def getStockInfoFromName(self, *, name: str) -> Stock:
-        '''
-        Retrieve stock information by company name.
-        
-        Uses Finnhub as primary source with Alpha Vantage fallback.
-        
-        Args:
-            name: Company name to search for (e.g., 'Apple Inc')
-            
-        Returns:
-            Stock object with company information
-            
-        Raises:
-            TypeError: If name is not a string
-            ValueError: If name is invalid or no matches found in any API
-        '''
+
         if not isinstance(name, str):
             raise TypeError(f"Name must be a string, got {type(name).__name__}")
         
@@ -73,21 +44,6 @@ class ExternalApiFacade:
             raise ValueError(error_msg)
     
     def getStockInfoFromSymbol(self, *, symbol: str) -> Stock:
-        '''
-        Retrieve stock information by ticker symbol.
-        
-        Uses Finnhub as primary source with Alpha Vantage fallback.
-        
-        Args:
-            symbol: Stock ticker symbol (e.g., 'AAPL', 'TSLA')
-            
-        Returns:
-            Stock object with company information
-            
-        Raises:
-            TypeError: If symbol is not a string
-            ValueError: If symbol is invalid or no data found in any API
-        '''
         if not isinstance(symbol, str):
             raise TypeError(f"Symbol must be a string, got {type(symbol).__name__}")
         
@@ -106,23 +62,16 @@ class ExternalApiFacade:
             logger.error(f"Alpha Vantage lookup also failed for symbol '{symbol}': {str(e)}")
             raise ValueError(f"Failed to fetch stock data for symbol '{symbol}' from all sources")
     
+    def getStockPrice(self, *, symbol: str) -> dict:
+        # Try yfinance (Primary)
+        try:
+            return self.yfinance.getStockPrice(symbol=symbol)
+        except Exception as e:
+            logger.warning(f"yfinance price lookup failed for {symbol}: {e}")
+            # Potential fallback to Finnhub here if we wanted to mix them
+            raise ValueError(f"Failed to fetch stock price for {symbol}")
+    
     def getStockEventDatesFromStock(self, *, stock: Stock, event_types: list[EventType]) -> list[StockEvent]:
-        '''
-        Retrieve stock events for a given stock and event types.
-        
-        Only Alpha Vantage provides event data (earnings, dividends, splits).
-        
-        Args:
-            stock: Stock object to get events for
-            event_types: List of EventType enums to fetch
-            
-        Returns:
-            List of StockEvent objects matching the requested event types
-            
-        Raises:
-            TypeError: If stock is not a Stock object or event_types is not a list
-            ValueError: If event_types is empty, contains invalid types, or API request fails
-        '''
         if not isinstance(stock, Stock):
             raise TypeError(f"Stock must be a Stock object, got {type(stock).__name__}")
         if not isinstance(event_types, list):

@@ -133,6 +133,24 @@ class StocksService:
         
         return stock_to_store
         
+    def get_stock_quote(self, *, ticker: str) -> dict:
+        '''
+        Retrieve real-time stock quote (price, change, etc).
+        
+        Args:
+            ticker: Stock symbol
+            
+        Returns:
+            dict: Quote data
+        '''
+        if not ticker or not ticker.strip():
+            raise ValueError('Ticker must be provided')
+            
+        try:
+            return self.external_api.getStockPrice(symbol=ticker.strip().upper())
+        except Exception as exc:
+            raise Exception(f'Failed to fetch stock quote: {str(exc)}') from exc
+        
     def upsert_stock_events(self, stock: Stock, event_types: List[EventType]) -> bool:
         '''
         Upserts stock event dates for a given stock into the database.

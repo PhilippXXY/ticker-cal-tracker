@@ -1,4 +1,5 @@
 from typing import Optional
+from werkzeug.security import generate_password_hash
 from src.models.user_model import User
 from src.database.adapter_factory import DatabaseAdapterFactory
 
@@ -70,13 +71,15 @@ class UserService:
         self,
         *,
         user_id: int,
-        email: Optional[str] = None,) -> bool:
+        email: Optional[str] = None,
+        password: Optional[str] = None) -> bool:
         '''
         Update user information.
         
         Args:
             user_id: The integer ID of the user to update.
             email: Optional new email address for the user.
+            password: Optional new password for the user.
             
         Returns:
             True if user was updated, False if no changes were made.
@@ -88,7 +91,7 @@ class UserService:
         if not isinstance(user_id, int):
             raise TypeError("user_id must be an integer")
         
-        if email is None:
+        if email is None and password is None:
             return False
         
         try:
@@ -108,6 +111,22 @@ class UserService:
                         'user_id': user_id
                     }
                     )
+                updated = updated or rows > 0
+            
+            if password is not None:
+                password_hash = generate_password_hash(password)
+                pwd_query = """
+                    UPDATE users
+                    SET password_hash = :password_hash
+                    WHERE id = :user_id
+                """
+                rows = self.db.execute_update(
+                    query=pwd_query,
+                    params={
+                        'password_hash': password_hash,
+                        'user_id': user_id
+                    }
+                )
                 updated = updated or rows > 0
             
             return updated

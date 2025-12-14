@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 from src.api.routes.auth_rest import auth_bp
 from src.api.routes.calendar_rest import calendar_bp
@@ -56,6 +57,7 @@ def create_app():
     
     # Initialize Flask
     app = Flask(__name__)
+    CORS(app) # Enable CORS for all routes
     
     # Configuration for Flask-Smorest
     app.config.update({
@@ -98,8 +100,8 @@ def create_app():
         logging.basicConfig(level=logging.INFO)
     
     # Initialize and start background task scheduler
-    scheduler = TaskScheduler()
-    scheduler.start()
+    # scheduler = TaskScheduler()
+    # scheduler.start()
     
     # Register cleanup handlers
     @app.teardown_appcontext
@@ -118,15 +120,15 @@ def create_app():
             logging.warning(f"Error during database cleanup: {e}")
     
     # Register cleanup for scheduler on app exit
-    atexit.register(lambda: scheduler.shutdown())
+    # atexit.register(lambda: scheduler.shutdown())
         
     return app
 
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Run the Flask app')
+    parser.add_argument('--port', type=int, default=5001, help='Port to run the app on')
+    args = parser.parse_args()
+
     app = create_app()
-    port = int(os.environ.get("PORT", 8080))
-    app.run(
-        host='0.0.0.0',
-        port=port,
-        debug=False,
-    )
+    app.run(debug=True, host='0.0.0.0', port=args.port)
