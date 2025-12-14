@@ -80,7 +80,7 @@ class UserService:
         Args:
             user_id: The integer ID of the user to update.
             email: Optional new email address for the user.
-            password: Optional new password for the user
+            password: Optional new password for the user.
             
         Returns:
             True if user was updated, False if no changes were made.
