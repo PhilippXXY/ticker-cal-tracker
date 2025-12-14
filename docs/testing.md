@@ -97,7 +97,7 @@ python -m unittest src.tests.test_finnhub_integration -v
 - Real API endpoint connectivity
 - Response format validation
 - Error handling for invalid symbols
-- Rate limiting behavior
+- Rate limiting behaviour
 - Data accuracy verification
 
 ---

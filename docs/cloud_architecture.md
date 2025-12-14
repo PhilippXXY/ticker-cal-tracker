@@ -28,7 +28,7 @@ The backend API is deployed using **Google Cloud Run**.
 
 Google Cloud Run was chosen because it:
 
-- supports containerized applications
+- supports containerised applications
 - scales automatically based on incoming traffic
 - requires no infrastructure management
 - charges only for actual usage
@@ -81,7 +81,7 @@ All external traffic is served over HTTPS, enforced by Google Cloud Run.
 ### Access Control
 
 - User accounts are isolated
-- Authorization is enforced at the API level
+- Authorisation is enforced at the API level
 - Database roles distinguish between administrative and application access
 
 ---
@@ -105,7 +105,7 @@ The CI/CD pipeline consists of two primary workflows:
 
 #### Main Branch Deployment Workflow
 
-1. **Docker image build** - Creates containerized application image
+1. **Docker image build** - Creates containerised application image
 2. **Image publishing** - Pushes to GitHub Container Registry
 3. **Cloud authentication** - Authenticates with Google Cloud using service account
 4. **Deployment to Cloud Run** - Deploys new version with zero downtime

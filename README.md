@@ -38,7 +38,7 @@ Configure **filters** for each watchlist to show only certain event categories.
 Set **reminder offsets** to get notifications before events (e.g., 1 day before).
 
 ### Safe Sharing Controls
-Calendar access uses an unguessable **tokenized URL**.
+Calendar access uses an unguessable **tokenised URL**.
 If you need to revoke access, **rotate the calendar token** to invalidate existing feed links.
 
 

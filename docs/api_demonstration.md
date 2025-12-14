@@ -23,7 +23,7 @@ The response includes an `access_token` that you'll need to include in the `Auth
 
 ### Create Watchlist
 
-Now create a watchlist to organize your stocks.
+Now create a watchlist to organise your stocks.
 For this demo, we'll create one called `FAANG Stocks` for Meta (Facebook), Apple, Amazon, Netflix, and Alphabet (Google).
 
 We'll configure it to display all event types: `Earnings`, `Dividends`, and `Stock Splits`.
