@@ -89,17 +89,6 @@ function WelcomePanel() {
               <p>Interactive API documentation</p>
             </div>
           </a>
-          <a
-            href={PROD_API}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="link-card"
-          >
-            <div>
-              <strong>Production API</strong>
-              <p>Live backend on Google Cloud Run</p>
-            </div>
-          </a>
         </div>
       </div>
 
